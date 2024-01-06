@@ -10,7 +10,6 @@ from main import intersections
 
 
 class AgentCar(Agent):
-    intersectionOn = []
 
     class CarBehavior(CyclicBehaviour):
         def __init__(self, position_x, position_y, direction, tag):
