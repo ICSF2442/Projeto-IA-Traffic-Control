@@ -10,38 +10,37 @@ from main import intersections
 
 
 class AgentIntersection(Agent):
-    north = int
-    south = int
-
-    west = int
-    east = int
-
-    carros = []
-
     class MyBehav(CyclicBehaviour):
 
         async def change_traffic_lights(self, direction):
-            # Change the traffic lights based on the chosen direction
-            if direction == "north":
-                self.semaforoNorte.setCor("Verde")
-                self.semaforoSul.setCor("Vermelho")
-                self.semaforoOeste.setCor("Vermelho")
-                self.semaforoEste.setCor("Vermelho")
-            elif direction == "south":
-                self.semaforoNorte.setCor("Vermelho")
-                self.semaforoSul.setCor("Verde")
-                self.semaforoOeste.setCor("Vermelho")
-                self.semaforoEste.setCor("Vermelho")
-            elif direction == "east":
-                self.semaforoNorte.setCor("Vermelho")
-                self.semaforoSul.setCor("Vermelho")
-                self.semaforoOeste.setCor("Vermelho")
-                self.semaforoEste.setCor("Verde")
-            elif direction == "west":
-                self.semaforoNorte.setCor("Vermelho")
-                self.semaforoSul.setCor("Vermelho")
-                self.semaforoOeste.setCor("Verde")
-                self.semaforoEste.setCor("Vermelho")
+            if not self.busy:
+                # Change the traffic lights based on the chosen direction
+                if direction == "north":
+                    self.semaforoNorte.setCor("Verde")
+                    self.semaforoSul.setCor("Vermelho")
+                    self.semaforoOeste.setCor("Vermelho")
+                    self.semaforoEste.setCor("Vermelho")
+                    self.priorityLine = "north"
+                elif direction == "south":
+                    self.semaforoNorte.setCor("Vermelho")
+                    self.semaforoSul.setCor("Verde")
+                    self.semaforoOeste.setCor("Vermelho")
+                    self.semaforoEste.setCor("Vermelho")
+                    self.priorityLine = "south"
+
+                elif direction == "east":
+                    self.semaforoNorte.setCor("Vermelho")
+                    self.semaforoSul.setCor("Vermelho")
+                    self.semaforoOeste.setCor("Vermelho")
+                    self.semaforoEste.setCor("Verde")
+                    self.priorityLine = "east"
+
+                elif direction == "west":
+                    self.semaforoNorte.setCor("Vermelho")
+                    self.semaforoSul.setCor("Vermelho")
+                    self.semaforoOeste.setCor("Verde")
+                    self.semaforoEste.setCor("Vermelho")
+                    self.priorityLine = "west"
 
         def check_if_car(self, tag):
             if tag not in self.carros:
@@ -51,7 +50,7 @@ class AgentIntersection(Agent):
                 return 1
 
         def traffic_handler(self):
-            max_wait_time = 5  # Define the maximum wait time for fairness (in seconds), adjust as needed
+            max_wait_time = 10  # Define the maximum wait time for fairness (in seconds), adjust as needed
             traffic = {
                 "north": self.north,
                 "south": self.south,
@@ -130,15 +129,28 @@ class AgentIntersection(Agent):
             self.semaforoOeste = semaforoOeste
             self.positionX = positionX
             self.positionY = positionY
+            self.busy = False
+            self.priorityLine = None
 
         async def run(self):
             while True:
+
+                await self.change_traffic_lights(self.traffic_handler())
+                traffic = {
+                    "north": self.north,
+                    "south": self.south,
+                    "east": self.east,
+                    "west": self.west
+                }
+                if self.priorityLine in traffic and traffic[self.priorityLine] > 0:
+                    self.busy = True
+
                 responseTotal = await self.receive(timeout=1)
                 if responseTotal:
                     if responseTotal.body.startswith("PASSED"):
                         parts = responseTotal.body.split(";")
-                        if self.check_if_car(parts[1]) == 1:
-                            self.carros -= parts[1]
+                        if self.check_if_car(parts) == 1:
+                            self.carros -= parts
                             semaforo = self.predict_car_pos(int(parts[2]), int(parts[3]), parts[4])
                             if semaforo == "norte":
                                 self.north -= 1
@@ -148,6 +160,7 @@ class AgentIntersection(Agent):
                                 self.east -= 1
                             elif semaforo == "oeste":
                                 self.west -= 1
+
                     if responseTotal.body.startswith("BEACON"):
                         print("recebi o beacon")
                         parts = responseTotal.body.split(";")
@@ -158,11 +171,14 @@ class AgentIntersection(Agent):
                             car_agent_jid = parts[5]
                             semaforo = self.predict_car_pos(car_posX, car_posY, car_direction)
                             if semaforo:
-                                self.check_if_car(parts[1])
+                                self.check_if_car(parts)
                                 msg = Message(to=f"{car_agent_jid}")
                                 msg.set_metadata("performative", "agree")
                                 msg.body = f"RECIEVED;{self.positionX};{self.positionY};{self.agent.jid}"
                                 if semaforo == "norte":
+                                    msg = Message(to=f"{car_agent_jid}")
+                                    msg.set_metadata("performative", "agree")
+                                    msg.body = f"STOP-INFO;{self.semaforoNorte.positionX};{self.semaforoNorte.positionY}"
                                     self.north += 1
                                 # msg = Message(to=f"{car_agent_jid}")
                                 # msg.set_metadata("performative", "agree")
@@ -196,13 +212,13 @@ class AgentIntersection(Agent):
         self.north_wait_time = 0
         self.east_wait_time = 0
         self.west_wait_time = 0
+        self.busy = False
         semaforoNorte.setPosicao(self.positionX - 1, self.positionY + 1)
         semaforoNorte.setCor("Verde")
         semaforoSul.setPosicao(self.positionX + 1, self.positionY - 1)
         semaforoSul.setCor("Verde")
         semaforoOeste.setPosicao(self.positionX - 1, self.positionY - 1)
         semaforoEste.setPosicao(self.positionX + 1, self.positionY + 1)
-
         intersections.append(self)
 
     async def setup(self):
