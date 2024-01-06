@@ -82,14 +82,12 @@ class AgentIntersection(Agent):
             self.semaforoSul = semaforoSul
             self.semaforoEste = semaforoEste
             self.semaforoOeste = semaforoOeste
+            self.positionX = positionX
+            self.positionY = positionY
 
         async def run(self):
             while True:
-                if self.semaforoNorte.cor == "Verde":
-                    print("semaforo norte ta verde")
-                else:
-                    print("semaforo norte ta vermelho")
-                responseTotal = await self.receive(timeout=10)
+                responseTotal = await self.receive(timeout=1)
                 if responseTotal:
                     if responseTotal.body.startswith("BEACON"):
                         print("recebi o beacon")
@@ -102,26 +100,29 @@ class AgentIntersection(Agent):
                             semaforo = self.predict_car_pos(car_posX, car_posY, car_direction)
                             if semaforo:
                                 self.check_if_car(parts[1])
+                                msg = Message(to=f"{car_agent_jid}")
+                                msg.set_metadata("performative", "agree")
+                                msg.body = f"RECIEVED;{self.positionX};{self.positionY};{self.agent.jid}"
                                 while True:
                                     if semaforo == "norte":
                                         msg = Message(to=f"{car_agent_jid}")
                                         msg.set_metadata("performative", "agree")
-                                        msg.body = f"{self.semaforoNorte.cor};{self.semaforoNorte.positionX};{self.semaforoNorte.positionY}"
+                                        msg.body = f"SEMAFORO;{self.semaforoNorte.cor};{self.semaforoNorte.positionX};{self.semaforoNorte.positionY}"
                                         await self.send(msg)
                                     elif semaforo == "sul":
                                         msg = Message(to=f"{car_agent_jid}")
                                         msg.set_metadata("performative", "agree")
-                                        msg.body = f"{self.semaforoSul.cor};{self.semaforoSul.positionX};{self.semaforoSul.positionY}"
+                                        msg.body = f"SEMAFORO;{self.semaforoSul.cor};{self.semaforoSul.positionX};{self.semaforoSul.positionY}"
                                         await self.send(msg)
                                     elif semaforo == "este":
                                         msg = Message(to=f"{car_agent_jid}")
                                         msg.set_metadata("performative", "agree")
-                                        msg.body = f"{self.semaforoEste.cor};{self.semaforoEste.positionX};{self.semaforoEste.positionY}"
+                                        msg.body = f"SEMAFORO;{self.semaforoEste.cor};{self.semaforoEste.positionX};{self.semaforoEste.positionY}"
                                         await self.send(msg)
                                     elif semaforo == "oeste":
                                         msg = Message(to=f"{car_agent_jid}")
                                         msg.set_metadata("performative", "agree")
-                                        msg.body = f"{self.semaforoOeste.cor};{self.semaforoOeste.positionX};{self.semaforoOeste.positionY}"
+                                        msg.body = f"SEMAFORO;{self.semaforoOeste.cor};{self.semaforoOeste.positionX};{self.semaforoOeste.positionY}"
                                         await self.send(msg)
 
                                     await asyncio.sleep(1)
