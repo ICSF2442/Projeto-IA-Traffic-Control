@@ -56,10 +56,11 @@ class AgentCar(Agent):
                     await self.handle_direction()
 
                     await self.check_traffic_light()
-
                     await asyncio.sleep(1)
                 else:
                     print(f"Car stopped at position ({self.posicao_x}, {self.posicao_y})")
+                    await self.check_traffic_light()
+
                     await asyncio.sleep(1)
 
         async def send_beacon(self, count):
@@ -110,18 +111,19 @@ class AgentCar(Agent):
                             self.stopped = parts[1] != "Verde"
 
             else:
-                print("Did not receive a message but moved anyway")
                 if not self.stopped:
-                    if self.direction == "up":
-                        self.posicao_y += 1
-                    if self.direction == "down":
-                        self.posicao_y -= 1
-                    if self.direction == "left":
-                        self.posicao_x -= 1
-                    if self.direction == "right":
-                        self.posicao_x += 1
+                    print("Did not receive a message but moved anyway")
+                    if not self.stopped:
+                        if self.direction == "up":
+                            self.posicao_y += 1
+                        if self.direction == "down":
+                            self.posicao_y -= 1
+                        if self.direction == "left":
+                            self.posicao_x -= 1
+                        if self.direction == "right":
+                            self.posicao_x += 1
 
-                print("Car at top right position ({}, {})".format(self.posicao_x, self.posicao_y))
+                    print("Car at top right position ({}, {})".format(self.posicao_x, self.posicao_y))
 
         async def on_end(self):
             print("Behavior ended with exit code {}.".format(self.exit_code))
