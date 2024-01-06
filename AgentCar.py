@@ -1,16 +1,13 @@
-import spade
 import asyncio
+import math
 from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour
 from spade.message import Message
-import math
-import turtle
 
 from main import intersections
 
 
 class AgentCar(Agent):
-
     class CarBehavior(CyclicBehaviour):
         def __init__(self, position_x, position_y, direction, tag):
             super().__init__()
@@ -21,6 +18,7 @@ class AgentCar(Agent):
             self.direction = direction
             self.beacon_stop = False
             self.intersection = []
+            self.movement_occurred = False  # Flag to track movement
 
         async def move_and_send(self, direction, x_change, y_change):
             self.posicao_x += x_change
@@ -43,43 +41,35 @@ class AgentCar(Agent):
                     self.intersection = []
 
         async def run(self):
-            counter = 0
-
             while True:
                 if not self.stopped:
-                    counter += 1
-                    await self.send_beacon(counter)
-                    if counter == 2:
-                        counter = 0
-
+                    await self.send_beacon()
                     await self.handle_direction()
-
                     await self.check_traffic_light()
                     await asyncio.sleep(1)
+                    self.movement_occurred = False  # Reset the flag for the next iteration
                 else:
                     print(f"Car stopped at position ({self.posicao_x}, {self.posicao_y})")
                     await self.check_traffic_light()
-
                     await asyncio.sleep(1)
 
-        async def send_beacon(self, count):
+        async def send_beacon(self):
             if not self.beacon_stop:
-                if count == 2:
-                    for intersection in intersections:
-                        distance = math.sqrt((self.posicao_x - intersection.position_x) ** 2 +
-                                             (self.posicao_y - intersection.position_y) ** 2)
-                        if distance <= 5:
-                            if (
-                                    (self.direction == "up" and self.posicao_y < intersection.position_y) or
-                                    (self.direction == "down" and self.posicao_y > intersection.position_y) or
-                                    (self.direction == "left" and self.posicao_x > intersection.position_x) or
-                                    (self.direction == "right" and self.posicao_x < intersection.position_x)
-                            ):
-                                beacon_msg = Message(to=f"{intersection.jid}")
-                                beacon_msg.set_metadata("performative", "agree")
-                                beacon_msg.body = f"BEACON;{self.tag};{self.posicao_x};{self.posicao_y};{self.direction};{self.agent.jid}"
-                                print("Sent beacon")
-                                await self.send(beacon_msg)
+                for intersection in intersections:
+                    distance = math.sqrt((self.posicao_x - intersection.position_x) ** 2 +
+                                         (self.posicao_y - intersection.position_y) ** 2)
+                    if distance <= 5:
+                        if (
+                                (self.direction == "up" and self.posicao_y < intersection.position_y) or
+                                (self.direction == "down" and self.posicao_y > intersection.position_y) or
+                                (self.direction == "left" and self.posicao_x > intersection.position_x) or
+                                (self.direction == "right" and self.posicao_x < intersection.position_x)
+                        ):
+                            beacon_msg = Message(to=f"{intersection.jid}")
+                            beacon_msg.set_metadata("performative", "agree")
+                            beacon_msg.body = f"BEACON;{self.tag};{self.posicao_x};{self.posicao_y};{self.direction};{self.agent.jid}"
+                            print("Sent beacon")
+                            await self.send(beacon_msg)
 
         async def handle_direction(self):
             directions = {
@@ -89,13 +79,15 @@ class AgentCar(Agent):
                 "right": (self.move_and_send, 1, 0),
             }
 
-            if self.direction in directions:
+            if self.direction in directions and not self.movement_occurred:
                 action, x_change, y_change = directions[self.direction]
                 await action(self.direction, x_change, y_change)
+                self.movement_occurred = True  # Set the flag
 
         async def check_traffic_light(self):
             response = await self.receive(timeout=1)
             if response:
+
                 if response.body.startswith("RECEIVED"):
                     self.beacon_stop = True
                     parts = response.body.split(";")
@@ -110,22 +102,17 @@ class AgentCar(Agent):
                             self.stopped = parts[1] != "Verde"
 
             else:
-                if not self.stopped:
-                    print("Did not receive a message but moved anyway")
-                    if not self.stopped:
-                        if self.direction == "up":
-                            self.posicao_y += 1
-                        if self.direction == "down":
-                            self.posicao_y -= 1
-                        if self.direction == "left":
-                            self.posicao_x -= 1
-                        if self.direction == "right":
-                            self.posicao_x += 1
+                if not self.stopped and not self.movement_occurred:
+                    if self.direction == "up":
+                        self.posicao_y += 1
+                    if self.direction == "down":
+                        self.posicao_y -= 1
+                    if self.direction == "left":
+                        self.posicao_x -= 1
+                    if self.direction == "right":
+                        self.posicao_x += 1
 
                     print("Car at top right position ({}, {})".format(self.posicao_x, self.posicao_y))
-
-        async def on_end(self):
-            print("Behavior ended with exit code {}.".format(self.exit_code))
 
     def __init__(self, jid: str, password: str, position_x, position_y, direction, tag: str,
                  verify_security: bool = False):
