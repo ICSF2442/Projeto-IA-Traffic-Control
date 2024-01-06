@@ -12,6 +12,12 @@ from main import intersections
 class AgentIntersection(Agent):
     class MyBehav(CyclicBehaviour):
 
+        def search_array_of_arrays(self, arrays, item):
+            for sub_array in arrays:
+                if item in sub_array:
+                    return sub_array  # Return the sub-array if the item is found
+            return None  # Return None if the item is not found in any sub-array
+
         async def change_traffic_lights(self, direction):
             if not self.busy:
                 # Change the traffic lights based on the chosen direction
@@ -112,6 +118,7 @@ class AgentIntersection(Agent):
             self.east = 0
             self.west = 0
             self.carros = []
+            self.carrosTAG = []
             self.acidente = None
             self.south_wait_time = 0
             self.north_wait_time = 0
@@ -172,6 +179,7 @@ class AgentIntersection(Agent):
                             semaforo = self.predict_car_pos(car_posX, car_posY, car_direction)
                             if semaforo:
                                 self.check_if_car(parts)
+                                self.carrosTAG += parts[1]
                                 msg = Message(to=f"{car_agent_jid}")
                                 msg.set_metadata("performative", "agree")
                                 msg.body = f"RECIEVED;{self.positionX};{self.positionY};{self.agent.jid}"
@@ -190,6 +198,30 @@ class AgentIntersection(Agent):
                                     self.east += 1
                                 elif semaforo == "oeste":
                                     self.west += 1
+                for tag in self.carrosTAG:
+                    carro = self.search_array_of_arrays(self.carros, tag)
+                    car_agent_jid = carro[5]
+                    semaforo = self.predict_car_pos(int(carro[2]), int(carro[3]), carro[4])
+                    if semaforo == "norte":
+                        msg = Message(to=f"{car_agent_jid}")
+                        msg.set_metadata("performative", "agree")
+                        msg.body = f"SEMAFORO;{self.semaforoNorte.cor};{self.semaforoNorte.positionX};{self.semaforoNorte.positionY}"
+                        await self.send(msg)
+                    elif semaforo == "sul":
+                        msg = Message(to=f"{car_agent_jid}")
+                        msg.set_metadata("performative", "agree")
+                        msg.body = f"SEMAFORO;{self.semaforoSul.cor};{self.semaforoSul.positionX};{self.semaforoSul.positionY}"
+                        await self.send(msg)
+                    elif semaforo == "este":
+                        msg = Message(to=f"{car_agent_jid}")
+                        msg.set_metadata("performative", "agree")
+                        msg.body = f"SEMAFORO;{self.semaforoEste.cor};{self.semaforoEste.positionX};{self.semaforoEste.positionY}"
+                        await self.send(msg)
+                    elif semaforo == "oeste":
+                        msg = Message(to=f"{car_agent_jid}")
+                        msg.set_metadata("performative", "agree")
+                        msg.body = f"SEMAFORO;{self.semaforoOeste.cor};{self.semaforoOeste.positionX};{self.semaforoOeste.positionY}"
+                        await self.send(msg)
 
                 await asyncio.sleep(1)
 
@@ -203,7 +235,8 @@ class AgentIntersection(Agent):
         self.my_behav = None
         self.positionX = positionX
         self.positionY = positionY
-        self.carros = None
+        self.carros = []
+        self.carrosTAG = []
         self.west = 0
         self.east = 0
         self.south = 0
