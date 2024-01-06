@@ -149,9 +149,10 @@ class AgentIntersection(Agent):
                     "east": self.east,
                     "west": self.west
                 }
-                if self.priorityLine in traffic and traffic[self.priorityLine] > 0:
-                    self.busy = True
-
+                if self.priorityLine in traffic:
+                    self.busy = traffic[self.priorityLine] > 0
+                else:
+                    self.busy = False
                 responseTotal = await self.receive(timeout=1)
                 if responseTotal:
                     if responseTotal.body.startswith("PASSED"):
