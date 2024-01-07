@@ -6,7 +6,7 @@ from spade.message import Message
 import math
 import turtle
 
-from AgentCar import AgentCar
+from AgentCar import AgentCar, SharedSpace
 from AgentIntersection import AgentIntersection
 from AgentTrafficLight import AgentTrafficLight
 
@@ -14,6 +14,9 @@ intersections = []
 
 
 async def main():
+
+    shared_space = SharedSpace()
+
     semaforo1 = AgentTrafficLight("semaforo1@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     semaforo2 = AgentTrafficLight("semaforo2@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     semaforo3 = AgentTrafficLight("semaforo3@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
@@ -21,7 +24,7 @@ async def main():
     intersection = AgentIntersection("intersection@localhost", "123", positionX=5, positionY=5, semaforoNorte=semaforo1,
                                      semaforoSul=semaforo2, semaforoEste=semaforo3, semaforoOeste=semaforo4)
 
-    carro = AgentCar("carro@localhost", "123", positionX=6, positionY=-4, direction="up", tag="001")
+    carro = AgentCar("carro@localhost", "123", positionX=6, positionY=-4, direction="up", tag="001", shared_space=shared_space)
 
     await semaforo1.start(auto_register=True)
     await semaforo2.start(auto_register=True)

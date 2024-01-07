@@ -7,9 +7,24 @@ from spade.message import Message
 from main import intersections
 
 
+class SharedSpace:
+    def __init__(self):
+        self.space = {}  # Dictionary to represent the shared space
+
+    def is_position_occupied(self, x, y):
+        return (x, y) in self.space
+
+    def occupy_position(self, x, y, tag):
+        self.space[(x, y)] = tag
+
+    def free_position(self, x, y):
+        if (x, y) in self.space:
+            del self.space[(x, y)]
+
+
 class AgentCar(Agent):
     class CarBehavior(CyclicBehaviour):
-        def __init__(self, position_x, position_y, direction, tag):
+        def __init__(self, position_x, position_y, direction, tag, shared_space):
             super().__init__()
             self.tag = tag
             self.posicao_x = position_x
@@ -19,6 +34,7 @@ class AgentCar(Agent):
             self.beacon_stop = False
             self.intersection = []
             self.movement_occurred = False  # Flag to track movement
+            self.shared_space = shared_space  # Reference to shared space
 
         async def move_and_send(self, direction, x_change, y_change):
             self.posicao_x += x_change
@@ -81,8 +97,17 @@ class AgentCar(Agent):
 
             if self.direction in directions and not self.movement_occurred:
                 action, x_change, y_change = directions[self.direction]
-                await action(self.direction, x_change, y_change)
-                self.movement_occurred = True  # Set the flag
+                next_x = self.posicao_x + x_change
+                next_y = self.posicao_y + y_change
+
+                if not self.shared_space.is_position_occupied(next_x, next_y):
+                    await action(self.direction, x_change, y_change)
+                    self.shared_space.free_position(self.posicao_x, self.posicao_y)
+                    self.shared_space.occupy_position(next_x, next_y, self.tag)
+                    self.movement_occurred = True
+                else:
+                    # Wait until the next position is available
+                    print(f"Position ({next_x}, {next_y}) is occupied. Waiting...")
 
         async def check_traffic_light(self):
             response = await self.receive(timeout=1)
@@ -114,7 +139,7 @@ class AgentCar(Agent):
 
                     print("Car at top right position ({}, {})".format(self.posicao_x, self.posicao_y))
 
-    def __init__(self, jid: str, password: str, position_x, position_y, direction, tag: str,
+    def __init__(self, jid: str, password: str, position_x, position_y, direction, tag: str, shared_space,
                  verify_security: bool = False):
         super().__init__(jid, password, verify_security)
         self.direction = direction
@@ -122,8 +147,9 @@ class AgentCar(Agent):
         self.posicao_x = position_x
         self.posicao_y = position_y
         self.tag = tag
+        self.shared_space = shared_space
 
     async def setup(self):
         print("Agent starting at position ({}, {})...".format(self.posicao_x, self.posicao_y))
-        self.behavior = self.CarBehavior(self.posicao_x, self.posicao_y, self.direction, self.tag)
+        self.behavior = self.CarBehavior(self.posicao_x, self.posicao_y, self.direction, self.tag, self.shared_space)
         self.add_behaviour(self.behavior)
