@@ -162,7 +162,7 @@ class AgentIntersection(Agent):
                             semaforo = self.predict_car_pos(int(parts[2]), int(parts[3]), parts[4])
                             if int(parts[1]) == 112 or int(parts[1]) == 911:
                                 if semaforo == "norte":
-                                    self.north -= 25  
+                                    self.north -= 25
                                 elif semaforo == "sul":
                                     self.south -= 25
                                 elif semaforo == "este":
@@ -197,7 +197,7 @@ class AgentIntersection(Agent):
                                 msg.body = f"RECIEVED;{self.positionX};{self.positionY};{self.agent.jid}"
                                 if car_tag == 112 or car_tag == 911:
                                     if semaforo == "norte":
-                                        self.north += 25  # Increase the count by 10 for higher priority
+                                        self.north += 25
                                     elif semaforo == "sul":
                                         self.south += 25
                                     elif semaforo == "este":
