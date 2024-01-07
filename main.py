@@ -24,7 +24,7 @@ async def main():
     intersection = AgentIntersection("intersection@localhost", "123", positionX=5, positionY=5, semaforoNorte=semaforo1,
                                      semaforoSul=semaforo2, semaforoEste=semaforo3, semaforoOeste=semaforo4)
 
-    carro = AgentCar("carro@localhost", "123", positionX=6, positionY=-4, direction="up", tag="001", shared_space=shared_space)
+    carro = AgentCar("carro@localhost", "123", position_x=6, position_y=-4, direction="up", tag="001", shared_space=shared_space)
 
     await semaforo1.start(auto_register=True)
     await semaforo2.start(auto_register=True)

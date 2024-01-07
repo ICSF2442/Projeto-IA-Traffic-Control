@@ -160,19 +160,30 @@ class AgentIntersection(Agent):
                         if self.check_if_car(parts) == 1:
                             self.carros -= parts
                             semaforo = self.predict_car_pos(int(parts[2]), int(parts[3]), parts[4])
-                            if semaforo == "norte":
-                                self.north -= 1
-                            elif semaforo == "sul":
-                                self.south -= 1
-                            elif semaforo == "este":
-                                self.east -= 1
-                            elif semaforo == "oeste":
-                                self.west -= 1
+                            if int(parts[1]) == 112 or int(parts[1]) == 911:
+                                if semaforo == "norte":
+                                    self.north -= 25  
+                                elif semaforo == "sul":
+                                    self.south -= 25
+                                elif semaforo == "este":
+                                    self.east -= 25
+                                elif semaforo == "oeste":
+                                    self.west -= 25
+                            else:
+                                if semaforo == "norte":
+                                    self.north -= 1
+                                elif semaforo == "sul":
+                                    self.south -= 1
+                                elif semaforo == "este":
+                                    self.east -= 1
+                                elif semaforo == "oeste":
+                                    self.west -= 1
 
                     if responseTotal.body.startswith("BEACON"):
                         print("recebi o beacon")
                         parts = responseTotal.body.split(";")
                         if len(parts) == 6:
+                            car_tag = int(parts[1])
                             car_posX = int(parts[2])
                             car_posY = int(parts[3])
                             car_direction = parts[4]
@@ -184,21 +195,28 @@ class AgentIntersection(Agent):
                                 msg = Message(to=f"{car_agent_jid}")
                                 msg.set_metadata("performative", "agree")
                                 msg.body = f"RECIEVED;{self.positionX};{self.positionY};{self.agent.jid}"
-                                if semaforo == "norte":
-                                    msg = Message(to=f"{car_agent_jid}")
-                                    msg.set_metadata("performative", "agree")
-                                    msg.body = f"STOP-INFO;{self.semaforoNorte.positionX};{self.semaforoNorte.positionY}"
-                                    self.north += 1
-                                # msg = Message(to=f"{car_agent_jid}")
-                                # msg.set_metadata("performative", "agree")
-                                # msg.body = f"SEMAFORO;{self.semaforoNorte.cor};{self.semaforoNorte.positionX};{self.semaforoNorte.positionY}"
-                                # await self.send(msg)
-                                elif semaforo == "sul":
-                                    self.south += 1
-                                elif semaforo == "este":
-                                    self.east += 1
-                                elif semaforo == "oeste":
-                                    self.west += 1
+                                if car_tag == 112 or car_tag == 911:
+                                    if semaforo == "norte":
+                                        self.north += 25  # Increase the count by 10 for higher priority
+                                    elif semaforo == "sul":
+                                        self.south += 25
+                                    elif semaforo == "este":
+                                        self.east += 25
+                                    elif semaforo == "oeste":
+                                        self.west += 25
+                                else:
+                                    if semaforo == "norte":
+                                        self.north += 1
+                                    # msg = Message(to=f"{car_agent_jid}")
+                                    # msg.set_metadata("performative", "agree")
+                                    # msg.body = f"SEMAFORO;{self.semaforoNorte.cor};{self.semaforoNorte.positionX};{self.semaforoNorte.positionY}"
+                                    # await self.send(msg)
+                                    elif semaforo == "sul":
+                                        self.south += 1
+                                    elif semaforo == "este":
+                                        self.east += 1
+                                    elif semaforo == "oeste":
+                                        self.west += 1
                 for tag in self.carrosTAG:
                     carro = self.search_array_of_arrays(self.carros, tag)
                     car_agent_jid = carro[5]
