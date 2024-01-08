@@ -120,7 +120,7 @@ class AgentIntersection(Agent):
 
         def __init__(self, positionX: int, positionY: int, semaforoNorte: Agent, semaforoSul: Agent,
                      semaforoEste: Agent,
-                     semaforoOeste: Agent, intersections):
+                     semaforoOeste: Agent):
             super().__init__()
             self.south = 0
             self.north = 0
@@ -147,7 +147,6 @@ class AgentIntersection(Agent):
             self.positionY = positionY
             self.busy = False
             self.priorityLine = None
-            self.intersections = intersections
 
         async def run(self):
             while True:
@@ -281,8 +280,7 @@ class AgentIntersection(Agent):
         semaforoSul.setCor("Verde")
         semaforoOeste.setPosicao(self.positionX - 1, self.positionY - 1)
         semaforoEste.setPosicao(self.positionX + 1, self.positionY + 1)
-        intersections.append(self)
-        self.intersections = intersections
+        intersections.add_intersection(self)
 
     async def setup(self):
         print("Interseção na posição ({}, {})".format(self.positionX, self.positionY))
