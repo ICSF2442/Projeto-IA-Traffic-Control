@@ -40,22 +40,22 @@ class AgentCar(Agent):
         async def move_and_send(self, direction, x_change, y_change):
             self.posicao_x += x_change
             self.posicao_y += y_change
-
-            intersection_conditions = {
-                "up": (self.posicao_y - 1 == self.intersection[2] and self.posicao_x - 1 == self.intersection[1]),
-                "down": (self.posicao_y + 1 == self.intersection[2] and self.posicao_x + 1 == self.intersection[1]),
-                "left": (self.posicao_y - 1 == self.intersection[2] and self.posicao_x + 1 == self.intersection[1]),
-                "right": (self.posicao_y + 1 == self.intersection[2] and self.posicao_x - 1 == self.intersection[1]),
-            }
-            if self.beacon_stop:
-                if direction in intersection_conditions and intersection_conditions[direction]:
-                    self.beacon_stop = False
-                    beacon_msg = Message(to=f"{self.intersection[3]}")
-                    beacon_msg.set_metadata("performative", "agree")
-                    beacon_msg.body = f"PASSED;{self.tag};{self.posicao_x};{self.posicao_y};{direction};{self.agent.jid}"
-                    print("Sent beacon")
-                    await self.send(beacon_msg)
-                    self.intersection = []
+            if len(self.intersections) > 0:
+                intersection_conditions = {
+                    "up": (self.posicao_y - 1 == self.intersection[2] and self.posicao_x - 1 == self.intersection[1]),
+                    "down": (self.posicao_y + 1 == self.intersection[2] and self.posicao_x + 1 == self.intersection[1]),
+                    "left": (self.posicao_y - 1 == self.intersection[2] and self.posicao_x + 1 == self.intersection[1]),
+                    "right": (self.posicao_y + 1 == self.intersection[2] and self.posicao_x - 1 == self.intersection[1]),
+                }
+                if self.beacon_stop:
+                    if direction in intersection_conditions and intersection_conditions[direction]:
+                        self.beacon_stop = False
+                        beacon_msg = Message(to=f"{self.intersection[3]}")
+                        beacon_msg.set_metadata("performative", "agree")
+                        beacon_msg.body = f"PASSED;{self.tag};{self.posicao_x};{self.posicao_y};{direction};{self.agent.jid}"
+                        print("Sent beacon")
+                        await self.send(beacon_msg)
+                        self.intersection = []
 
         async def run(self):
             while True:
