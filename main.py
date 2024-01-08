@@ -21,10 +21,10 @@ async def main():
     semaforo3 = AgentTrafficLight("semaforo3@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     semaforo4 = AgentTrafficLight("semaforo4@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     intersection = AgentIntersection("intersection@localhost", "123", positionX=5, positionY=5, semaforoNorte=semaforo1,
-                                     semaforoSul=semaforo2, semaforoEste=semaforo3, semaforoOeste=semaforo4, intersections=Intersections)
+                                     semaforoSul=semaforo2, semaforoEste=semaforo3, semaforoOeste=semaforo4, intersections=intersections)
 
     carro = AgentCar("carro@localhost", "123", position_x=6, position_y=-4, direction="up", tag="001",
-                     shared_space=shared_space, intersections=Intersections)
+                     shared_space=shared_space, intersections=intersections)
 
     await semaforo1.start(auto_register=True)
     await semaforo2.start(auto_register=True)

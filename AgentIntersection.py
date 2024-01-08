@@ -285,5 +285,5 @@ class AgentIntersection(Agent):
     async def setup(self):
         print("Interseção na posição ({}, {})".format(self.positionX, self.positionY))
         self.my_behav = self.MyBehav(self.positionX, self.positionY, self.semaforoNorte, self.semaforoSul,
-                                     self.semaforoOeste, self.semaforoEste, self.intersections)
+                                     self.semaforoOeste, self.semaforoEste)
         self.add_behaviour(self.my_behav)
