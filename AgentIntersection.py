@@ -6,7 +6,16 @@ from spade.message import Message
 import math
 import turtle
 
-from main import intersections
+
+class Intersections:
+    def __init__(self):
+        self.intersection_array = []
+
+    def add_intersection(self, intersection):
+        self.intersection_array.append(intersection)
+
+    def get_intersections(self):
+        return self.intersection_array
 
 
 class AgentIntersection(Agent):
@@ -111,7 +120,7 @@ class AgentIntersection(Agent):
 
         def __init__(self, positionX: int, positionY: int, semaforoNorte: Agent, semaforoSul: Agent,
                      semaforoEste: Agent,
-                     semaforoOeste: Agent):
+                     semaforoOeste: Agent, intersections):
             super().__init__()
             self.south = 0
             self.north = 0
@@ -138,6 +147,7 @@ class AgentIntersection(Agent):
             self.positionY = positionY
             self.busy = False
             self.priorityLine = None
+            self.intersections = intersections
 
         async def run(self):
             while True:
@@ -245,7 +255,7 @@ class AgentIntersection(Agent):
                 await asyncio.sleep(1)
 
     def __init__(self, jid: str, password: str, positionX, positionY, semaforoNorte: Agent, semaforoSul: Agent,
-                 semaforoEste: Agent, semaforoOeste: Agent, verify_security: bool = False):
+                 semaforoEste: Agent, semaforoOeste: Agent, intersections, verify_security: bool = False):
         super().__init__(jid, password, verify_security)
         self.semaforoNorte = semaforoNorte
         self.semaforoSul = semaforoSul
@@ -272,9 +282,10 @@ class AgentIntersection(Agent):
         semaforoOeste.setPosicao(self.positionX - 1, self.positionY - 1)
         semaforoEste.setPosicao(self.positionX + 1, self.positionY + 1)
         intersections.append(self)
+        self.intersections = intersections
 
     async def setup(self):
         print("Interseção na posição ({}, {})".format(self.positionX, self.positionY))
         self.my_behav = self.MyBehav(self.positionX, self.positionY, self.semaforoNorte, self.semaforoSul,
-                                     self.semaforoOeste, self.semaforoEste)
+                                     self.semaforoOeste, self.semaforoEste, self.intersections)
         self.add_behaviour(self.my_behav)

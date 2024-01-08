@@ -24,7 +24,7 @@ class SharedSpace:
 
 class AgentCar(Agent):
     class CarBehavior(CyclicBehaviour):
-        def __init__(self, position_x, position_y, direction, tag, shared_space):
+        def __init__(self, position_x, position_y, direction, tag, shared_space, intersections):
             super().__init__()
             self.tag = tag
             self.posicao_x = position_x
@@ -35,6 +35,7 @@ class AgentCar(Agent):
             self.intersection = []
             self.movement_occurred = False  # Flag to track movement
             self.shared_space = shared_space  # Reference to shared space
+            self.intersections = intersections
 
         async def move_and_send(self, direction, x_change, y_change):
             self.posicao_x += x_change
@@ -71,7 +72,7 @@ class AgentCar(Agent):
 
         async def send_beacon(self):
             if not self.beacon_stop:
-                for intersection in intersections:
+                for intersection in self.intersections:
                     distance = math.sqrt((self.posicao_x - intersection.position_x) ** 2 +
                                          (self.posicao_y - intersection.position_y) ** 2)
                     if distance <= 5:
@@ -139,7 +140,7 @@ class AgentCar(Agent):
 
                     print("Car at top right position ({}, {})".format(self.posicao_x, self.posicao_y))
 
-    def __init__(self, jid: str, password: str, position_x, position_y, direction, tag: str, shared_space,
+    def __init__(self, jid: str, password: str, position_x, position_y, direction, tag: str, shared_space, intersections,
                  verify_security: bool = False):
         super().__init__(jid, password, verify_security)
         self.direction = direction
@@ -148,8 +149,9 @@ class AgentCar(Agent):
         self.posicao_y = position_y
         self.tag = tag
         self.shared_space = shared_space
+        self.intersections = intersections
 
     async def setup(self):
         print("Agent starting at position ({}, {})...".format(self.posicao_x, self.posicao_y))
-        self.behavior = self.CarBehavior(self.posicao_x, self.posicao_y, self.direction, self.tag, self.shared_space)
+        self.behavior = self.CarBehavior(self.posicao_x, self.posicao_y, self.direction, self.tag, self.shared_space, self.intersections)
         self.add_behaviour(self.behavior)

@@ -9,22 +9,22 @@ import turtle
 from AgentCar import AgentCar, SharedSpace
 from AgentIntersection import AgentIntersection
 from AgentTrafficLight import AgentTrafficLight
-
-intersections = []
+from AgentIntersection import Intersections
 
 
 async def main():
-
     shared_space = SharedSpace()
+    intersections = Intersections()
 
     semaforo1 = AgentTrafficLight("semaforo1@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     semaforo2 = AgentTrafficLight("semaforo2@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     semaforo3 = AgentTrafficLight("semaforo3@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     semaforo4 = AgentTrafficLight("semaforo4@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     intersection = AgentIntersection("intersection@localhost", "123", positionX=5, positionY=5, semaforoNorte=semaforo1,
-                                     semaforoSul=semaforo2, semaforoEste=semaforo3, semaforoOeste=semaforo4)
+                                     semaforoSul=semaforo2, semaforoEste=semaforo3, semaforoOeste=semaforo4, intersections=Intersections)
 
-    carro = AgentCar("carro@localhost", "123", position_x=6, position_y=-4, direction="up", tag="001", shared_space=shared_space)
+    carro = AgentCar("carro@localhost", "123", position_x=6, position_y=-4, direction="up", tag="001",
+                     shared_space=shared_space, intersections=Intersections)
 
     await semaforo1.start(auto_register=True)
     await semaforo2.start(auto_register=True)
