@@ -82,16 +82,16 @@ class AgentIntersection(Agent):
 
             # Define a function to get the wait time for a specific direction
             if direction == "north":
-                self.north_wait_time = self.waiting_time_manger.get_time_for_direction(direction)
+                self.north_wait_time += self.waiting_time_manger.get_time_for_direction(direction)
                 return self.north_wait_time
             elif direction == "south":
-                self.south_wait_time = self.waiting_time_manger.get_time_for_direction(direction)
+                self.south_wait_time += self.waiting_time_manger.get_time_for_direction(direction)
                 return self.south_wait_time
             elif direction == "east":
-                self.east_wait_time = self.waiting_time_manger.get_time_for_direction(direction)
+                self.east_wait_time += self.waiting_time_manger.get_time_for_direction(direction)
                 return self.east_wait_time
             elif direction == "west":
-                self.west_wait_time = self.waiting_time_manger.get_time_for_direction(direction)
+                self.west_wait_time += self.waiting_time_manger.get_time_for_direction(direction)
                 return self.west_wait_time
             else:
                 return 0  # Return 0 for an unknown direction
@@ -247,7 +247,8 @@ class AgentIntersection(Agent):
                 await asyncio.sleep(1)
 
     def __init__(self, jid: str, password: str, positionX, positionY, semaforoNorte: Agent, semaforoSul: Agent,
-                 semaforoEste: Agent, semaforoOeste: Agent, intersections, waiting_time_manager, verify_security: bool = False):
+                 semaforoEste: Agent, semaforoOeste: Agent, intersections, waiting_time_manager,
+                 verify_security: bool = False):
         super().__init__(jid, password, verify_security)
         self.semaforoNorte = semaforoNorte
         self.semaforoSul = semaforoSul
