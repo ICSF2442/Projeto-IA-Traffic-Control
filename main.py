@@ -26,7 +26,7 @@ async def main():
                                      semaforoSul=semaforo2, semaforoEste=semaforo3, semaforoOeste=semaforo4,
                                      intersections=intersections, waiting_time_manager=waiting_time)
 
-    carro = AgentCar("carro@localhost", "123", position_x=6, position_y=-4, direction="up", tag="001",
+    carro = AgentCar("carro@localhost", "123", position_x=6, position_y=0, direction="up", tag="001",
                      shared_space=shared_space, intersections=intersections, waiting_time_manager=waiting_time)
 
     await semaforo1.start(auto_register=True)

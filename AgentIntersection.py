@@ -47,9 +47,11 @@ class AgentIntersection(Agent):
                     self.priorityLine = "west"
 
         def check_if_car(self, tag):
-            if tag not in self.carros:
-                self.carros += [tag]  # Using the += operator to extend the array
-                return 0
+            tag = tag[1:]
+            if self.search_array_of_arrays(self.carros, tag[0]) == None:
+                if tag not in self.carros:
+                    self.carros += [tag]  # Using the += operator to extend the array
+                    return 0
             else:
                 return 1
 
@@ -158,13 +160,16 @@ class AgentIntersection(Agent):
                     self.busy = traffic[self.priorityLine] > 0
                 else:
                     self.busy = False
-                responseTotal = await self.receive(timeout=3)
+                responseTotal = await self.receive(timeout=2)
                 if responseTotal:
                     if responseTotal.body.startswith("PASSED"):
+                        print("recebi passed")
                         parts = responseTotal.body.split(";")
                         if self.check_if_car(parts) == 1:
-                            self.carros -= parts
-                            semaforo = self.predict_car_pos(int(parts[2]), int(parts[3]), parts[4])
+                            carro = self.search_array_of_arrays(self.carros, parts[1])
+                            self.carrosTAG.remove(parts[1])
+                            self.carros.remove(carro)
+                            semaforo = self.predict_car_pos(int(carro[1]), int(carro[2]), carro[3])
                             if int(parts[1]) == 112 or int(parts[1]) == 911:
                                 if semaforo == "norte":
                                     self.north -= 25
@@ -188,7 +193,7 @@ class AgentIntersection(Agent):
                         print("recebi o beacon")
                         parts = responseTotal.body.split(";")
                         if len(parts) == 6:
-                            car_tag = int(parts[1])
+                            car_tag = str(parts[1])
                             car_posX = int(parts[2])
                             car_posY = int(parts[3])
                             car_direction = parts[4]
@@ -196,7 +201,7 @@ class AgentIntersection(Agent):
                             semaforo = self.predict_car_pos(car_posX, car_posY, car_direction)
                             if semaforo:
                                 if self.check_if_car(parts) == 0:
-                                    self.carrosTAG += str(car_tag)
+                                    self.carrosTAG.append(car_tag)
                                 msg = Message(to=f"{car_agent_jid}")
                                 msg.set_metadata("performative", "agree")
                                 msg.body = f"RECEIVED;{self.positionX};{self.positionY};{self.agent.jid}"
@@ -221,8 +226,8 @@ class AgentIntersection(Agent):
                                         self.west += 1
                 for tag in self.carrosTAG:
                     carro = self.search_array_of_arrays(self.carros, tag)
-                    car_agent_jid = carro[5]
-                    semaforo = self.predict_car_pos(int(carro[2]), int(carro[3]), carro[4])
+                    car_agent_jid = carro[4]
+                    semaforo = self.predict_car_pos(int(carro[1]), int(carro[2]), carro[3])
                     if semaforo == "norte":
                         msg1 = Message(to=f"{car_agent_jid}")
                         msg1.set_metadata("performative", "agree")
