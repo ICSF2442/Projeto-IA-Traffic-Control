@@ -10,21 +10,24 @@ from AgentCar import AgentCar
 from AgentIntersection import AgentIntersection
 from AgentTrafficLight import AgentTrafficLight
 from Intersections import Intersections
+from WaitingTimeManager import WaitingTimeManager
 
 
 async def main():
     shared_space = SharedSpace()
     intersections = Intersections()
+    waiting_time = WaitingTimeManager()
 
     semaforo1 = AgentTrafficLight("semaforo1@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     semaforo2 = AgentTrafficLight("semaforo2@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     semaforo3 = AgentTrafficLight("semaforo3@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     semaforo4 = AgentTrafficLight("semaforo4@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     intersection = AgentIntersection("intersection@localhost", "123", positionX=5, positionY=5, semaforoNorte=semaforo1,
-                                     semaforoSul=semaforo2, semaforoEste=semaforo3, semaforoOeste=semaforo4, intersections=intersections)
+                                     semaforoSul=semaforo2, semaforoEste=semaforo3, semaforoOeste=semaforo4,
+                                     intersections=intersections, waiting_time_manager=waiting_time)
 
     carro = AgentCar("carro@localhost", "123", position_x=6, position_y=-4, direction="up", tag="001",
-                     shared_space=shared_space, intersections=intersections)
+                     shared_space=shared_space, intersections=intersections, waiting_time_manager=waiting_time)
 
     await semaforo1.start(auto_register=True)
     await semaforo2.start(auto_register=True)

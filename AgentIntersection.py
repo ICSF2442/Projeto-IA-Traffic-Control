@@ -79,14 +79,19 @@ class AgentIntersection(Agent):
                 return chosen_direction
 
         def get_wait_time(self, direction):
+
             # Define a function to get the wait time for a specific direction
             if direction == "north":
+                self.north_wait_time = self.waiting_time_manger.get_time_for_direction(direction)
                 return self.north_wait_time
             elif direction == "south":
+                self.south_wait_time = self.waiting_time_manger.get_time_for_direction(direction)
                 return self.south_wait_time
             elif direction == "east":
+                self.east_wait_time = self.waiting_time_manger.get_time_for_direction(direction)
                 return self.east_wait_time
             elif direction == "west":
+                self.west_wait_time = self.waiting_time_manger.get_time_for_direction(direction)
                 return self.west_wait_time
             else:
                 return 0  # Return 0 for an unknown direction
@@ -110,7 +115,7 @@ class AgentIntersection(Agent):
 
         def __init__(self, positionX: int, positionY: int, semaforoNorte: Agent, semaforoSul: Agent,
                      semaforoEste: Agent,
-                     semaforoOeste: Agent):
+                     semaforoOeste: Agent, waiting_time_manager):
             super().__init__()
             self.south = 0
             self.north = 0
@@ -137,6 +142,7 @@ class AgentIntersection(Agent):
             self.positionY = positionY
             self.busy = False
             self.priorityLine = None
+            self.waiting_time_manger = waiting_time_manager
 
         async def run(self):
             while True:
@@ -207,10 +213,6 @@ class AgentIntersection(Agent):
                                 else:
                                     if semaforo == "norte":
                                         self.north += 1
-                                    # msg = Message(to=f"{car_agent_jid}")
-                                    # msg.set_metadata("performative", "agree")
-                                    # msg.body = f"SEMAFORO;{self.semaforoNorte.cor};{self.semaforoNorte.positionX};{self.semaforoNorte.positionY}"
-                                    # await self.send(msg)
                                     elif semaforo == "sul":
                                         self.south += 1
                                     elif semaforo == "este":
@@ -245,7 +247,7 @@ class AgentIntersection(Agent):
                 await asyncio.sleep(1)
 
     def __init__(self, jid: str, password: str, positionX, positionY, semaforoNorte: Agent, semaforoSul: Agent,
-                 semaforoEste: Agent, semaforoOeste: Agent, intersections, verify_security: bool = False):
+                 semaforoEste: Agent, semaforoOeste: Agent, intersections, waiting_time_manager, verify_security: bool = False):
         super().__init__(jid, password, verify_security)
         self.semaforoNorte = semaforoNorte
         self.semaforoSul = semaforoSul
@@ -265,6 +267,7 @@ class AgentIntersection(Agent):
         self.east_wait_time = 1
         self.west_wait_time = 1
         self.busy = False
+        self.waiting_time_manager = waiting_time_manager
         semaforoNorte.setPosicao(self.positionX - 1, self.positionY + 1)
         semaforoNorte.setCor("Verde")
         semaforoSul.setPosicao(self.positionX + 1, self.positionY - 1)
@@ -276,5 +279,5 @@ class AgentIntersection(Agent):
     async def setup(self):
         print("Interseção na posição ({}, {})".format(self.positionX, self.positionY))
         self.my_behav = self.MyBehav(self.positionX, self.positionY, self.semaforoNorte, self.semaforoSul,
-                                     self.semaforoOeste, self.semaforoEste)
+                                     self.semaforoOeste, self.semaforoEste, self.waiting_time_manager)
         self.add_behaviour(self.my_behav)

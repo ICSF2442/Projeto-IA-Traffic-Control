@@ -7,7 +7,7 @@ from spade.message import Message
 
 class AgentCar(Agent):
     class CarBehavior(CyclicBehaviour):
-        def __init__(self, position_x, position_y, direction, tag, shared_space, intersections):
+        def __init__(self, position_x, position_y, direction, tag, shared_space, intersections, waiting_time_manager):
             super().__init__()
             self.tag = tag
             self.posicao_x = position_x
@@ -19,11 +19,13 @@ class AgentCar(Agent):
             self.movement_occurred = False  # Flag to track movement
             self.shared_space = shared_space  # Reference to shared space
             self.intersections = intersections
+            self.waiting_time_manager = waiting_time_manager
+            self.XtoStop = None
+            self.YtoStop = None
 
         async def move_and_send(self, direction, x_change, y_change):
             self.posicao_x += x_change
             self.posicao_y += y_change
-            teste = self.intersections.get_intersections()
             if len(self.intersection) > 0:
                 intersection_conditions = {
                     "up": (self.posicao_y - 1 == self.intersection[2] and self.posicao_x - 1 == self.intersection[1]),
@@ -40,6 +42,7 @@ class AgentCar(Agent):
                         beacon_msg.body = f"PASSED;{self.tag};{self.posicao_x};{self.posicao_y};{direction};{self.agent.jid}"
                         print("Sent beacon")
                         await self.send(beacon_msg)
+                        self.waiting_time_manager.car_continued(self.direction)
                         self.intersection = []
 
         async def run(self):
@@ -111,8 +114,13 @@ class AgentCar(Agent):
                     if len(parts) == 4:
                         semaforo_position_x = int(parts[2])
                         semaforo_position_y = int(parts[3])
-                        if semaforo_position_x == self.posicao_x and semaforo_position_y == self.posicao_y:
-                            self.stopped = parts[1] != "Verde"
+                        self.XtoStop = semaforo_position_x
+                        self.YtoStop = semaforo_position_y
+                        if ((semaforo_position_x == self.posicao_x and semaforo_position_y == self.posicao_y) or
+                                (self.XtoStop == self.posicao_x and self.YtoStop == self.posicao_y)):
+                            if parts[1] != "Verde":
+                                self.stopped = True
+                                self.waiting_time_manager.car_stopped(self.direction)
 
             else:
                 if not self.stopped and not self.movement_occurred:
@@ -128,6 +136,7 @@ class AgentCar(Agent):
                     print("Car at top right position ({}, {})".format(self.posicao_x, self.posicao_y))
 
     def __init__(self, jid: str, password: str, position_x, position_y, direction, tag: str, shared_space,
+                 waiting_time_manager,
                  intersections,
                  verify_security: bool = False):
         super().__init__(jid, password, verify_security)
@@ -138,9 +147,10 @@ class AgentCar(Agent):
         self.tag = tag
         self.shared_space = shared_space
         self.intersections = intersections
+        self.waiting_time_manager = waiting_time_manager
 
     async def setup(self):
         print("Agent starting at position ({}, {})...".format(self.posicao_x, self.posicao_y))
         self.behavior = self.CarBehavior(self.posicao_x, self.posicao_y, self.direction, self.tag, self.shared_space,
-                                         self.intersections)
+                                         self.intersections, self.waiting_time_manager)
         self.add_behaviour(self.behavior)

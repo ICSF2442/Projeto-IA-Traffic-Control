@@ -8,6 +8,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AgentCar.py" beforeDir="false" afterPath="$PROJECT_DIR$/AgentCar.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AgentIntersection.py" beforeDir="false" afterPath="$PROJECT_DIR$/AgentIntersection.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/WaitingTimeManager.py" beforeDir="false" afterPath="$PROJECT_DIR$/WaitingTimeManager.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -94,7 +95,7 @@
       <workItem from="1704541245704" duration="19871000" />
       <workItem from="1704654422058" duration="3598000" />
       <workItem from="1704736811948" duration="3972000" />
-      <workItem from="1704817226356" duration="2180000" />
+      <workItem from="1704817226356" duration="4904000" />
     </task>
     <servers />
   </component>
