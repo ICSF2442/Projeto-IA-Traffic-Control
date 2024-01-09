@@ -22,6 +22,8 @@ class AgentCar(Agent):
             self.waiting_time_manager = waiting_time_manager
             self.XtoStop = None
             self.YtoStop = None
+            self.traffic_color = None
+            self.already_stopped_once = False
 
         async def move_and_send(self, direction, x_change, y_change):
             self.posicao_x += x_change
@@ -44,15 +46,20 @@ class AgentCar(Agent):
                         await self.send(beacon_msg)
                         self.waiting_time_manager.car_continued(self.direction)
                         self.intersection = []
+                        self.traffic_color = None
+                        self.beacon_stop = False
 
         async def run(self):
             while True:
                 if not self.stopped:
-                    await self.send_beacon()
-                    await self.handle_direction()
-                    await self.check_traffic_light()
-                    await asyncio.sleep(1)
-                    self.movement_occurred = False  # Reset the flag for the next iteration
+                    if not self.posicao_x == self.XtoStop and self.posicao_y == self.YtoStop and self.traffic_color == "Vermelho":
+                        await self.send_beacon()
+                        await self.handle_direction()
+                        await self.check_traffic_light()
+                        await asyncio.sleep(1)
+                        self.movement_occurred = False  # Reset the flag for the next iteration
+                    else:
+                        self.stopped = True
                 else:
                     print(f"Car stopped at position ({self.posicao_x}, {self.posicao_y})")
                     await self.check_traffic_light()
@@ -112,6 +119,7 @@ class AgentCar(Agent):
                     print("semaforo")
                     parts = response.body.split(";")
                     if len(parts) == 4:
+                        self.traffic_color = parts[1]
                         semaforo_position_x = int(parts[2])
                         semaforo_position_y = int(parts[3])
                         self.XtoStop = semaforo_position_x
@@ -120,7 +128,9 @@ class AgentCar(Agent):
                                 (self.XtoStop == self.posicao_x and self.YtoStop == self.posicao_y)):
                             if parts[1] != "Verde":
                                 self.stopped = True
-                                self.waiting_time_manager.car_stopped(self.direction)
+                                if not self.already_stopped_once:
+                                    self.waiting_time_manager.car_stopped(self.direction)
+                                    self.already_stopped_once = True
 
             else:
                 if not self.stopped and not self.movement_occurred:
