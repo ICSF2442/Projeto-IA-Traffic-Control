@@ -7,17 +7,6 @@ import math
 import turtle
 
 
-class Intersections:
-    def __init__(self):
-        self.intersection_array = []
-
-    def add_intersection(self, intersection):
-        self.intersection_array.append(intersection)
-
-    def get_intersections(self):
-        return self.intersection_array
-
-
 class AgentIntersection(Agent):
     class MyBehav(CyclicBehaviour):
 
@@ -77,8 +66,9 @@ class AgentIntersection(Agent):
                 total_waiting = sum(traffic.values())
 
                 # Calculate the average wait time per direction (avoid division by zero)
-                average_wait_time = {side: max_wait_time if traffic[side] == 0 else self.get_wait_time(side) / traffic[side]
-                                     for side in traffic}
+                average_wait_time = {
+                    side: max_wait_time if traffic[side] == 0 else self.get_wait_time(side) / traffic[side]
+                    for side in traffic}
 
                 # Calculate a weighted value for each direction considering both traffic and wait time
                 weighted_values = {side: traffic[side] * average_wait_time[side] for side in traffic}

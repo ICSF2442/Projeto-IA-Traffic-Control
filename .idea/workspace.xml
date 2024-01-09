@@ -8,6 +8,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AgentCar.py" beforeDir="false" afterPath="$PROJECT_DIR$/AgentCar.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AgentIntersection.py" beforeDir="false" afterPath="$PROJECT_DIR$/AgentIntersection.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,6 +53,7 @@
   <component name="RunManager">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="ProjetoAI - Trafic control" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -92,6 +94,7 @@
       <workItem from="1704541245704" duration="19871000" />
       <workItem from="1704654422058" duration="3598000" />
       <workItem from="1704736811948" duration="3972000" />
+      <workItem from="1704817226356" duration="2180000" />
     </task>
     <servers />
   </component>
