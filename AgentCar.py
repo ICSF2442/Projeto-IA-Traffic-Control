@@ -6,6 +6,7 @@ from spade.behaviour import CyclicBehaviour
 from spade.message import Message
 
 
+
 class AgentCar(Agent):
     class CarBehavior(CyclicBehaviour):
         def __init__(self, position_x, position_y, direction, tag, shared_space, intersections, waiting_time_manager):
@@ -26,18 +27,9 @@ class AgentCar(Agent):
             self.traffic_color = None
             self.already_stopped_once = False
 
-        def update_interface(self):
-            pygame_host = "localhost"
-            pygame_port = 12345  # Replace with the Pygame listening port
-            pygame_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            pygame_socket.connect((pygame_host, pygame_port))
-            pygame_socket.send(f"MOVED;{self.tag}".encode())
-            pygame_socket.close()
-
         async def move_and_send(self, direction, x_change, y_change):
             self.posicao_x += x_change
             self.posicao_y += y_change
-            self.shared_space.move_agent(self)
             if len(self.intersection) > 0:
                 intersection_conditions = {
                     "up": (self.posicao_y - 1 >= int(self.intersection[2]) and self.posicao_x - 1 >= int(
