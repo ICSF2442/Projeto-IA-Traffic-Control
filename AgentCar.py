@@ -1,10 +1,10 @@
 import asyncio
 import math
-import socket
+import time
+
 from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour
 from spade.message import Message
-
 
 
 class AgentCar(Agent):
@@ -26,10 +26,14 @@ class AgentCar(Agent):
             self.YtoStop = None
             self.traffic_color = None
             self.already_stopped_once = False
+            self.movements = []
 
         async def move_and_send(self, direction, x_change, y_change):
             self.posicao_x += x_change
             self.posicao_y += y_change
+
+            self.movements.append((self.tag, self.posicao_x, self.posicao_y, time.time()))  # Use time.time() for timestamp
+
             if len(self.intersection) > 0:
                 intersection_conditions = {
                     "up": (self.posicao_y - 1 >= int(self.intersection[2]) and self.posicao_x - 1 >= int(

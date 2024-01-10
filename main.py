@@ -1,10 +1,7 @@
+import time
+
 import spade
 import asyncio
-from spade.agent import Agent
-from spade.behaviour import CyclicBehaviour
-from spade.message import Message
-import math
-import turtle
 from SharedSpace import SharedSpace
 from AgentCar import AgentCar
 from AgentIntersection import AgentIntersection
@@ -12,11 +9,30 @@ from AgentTrafficLight import AgentTrafficLight
 from Intersections import Intersections
 from WaitingTimeManager import WaitingTimeManager
 import pygame
-import sys
+
+car_agents = {}
+cars = {}
+
+
+async def update_interface(car_agents):
+    while True:
+        for car_tag, car_agent in car_agents.items():
+            movements = car_agent.movements
+            for movement in movements:
+                timestamp = movement[2]
+                if time.time() - timestamp <= 1:
+                    new_x, new_y = movement[0], movement[1]
+                    # Update interface based on the movement
+                    for car in cars:
+                        if car.tag == car_tag:
+                            car.move_from_message()
+                    # Perform interface updates
+
+        # Sleep for a second before checking again
+        await asyncio.sleep(1)
 
 
 async def main():
-
     # Initialize Pygame
     pygame.init()
 
@@ -48,7 +64,7 @@ async def main():
     red_light_image = pygame.transform.scale(red_light_image, light_size)
 
     class Car:
-        cars = []
+        global cars
 
         def __init__(self, tag, start_x, start_y, initial_angle=0):
             self.tag = tag
@@ -105,20 +121,17 @@ async def main():
     south_traffic_light = TrafficLight(*grid_to_screen_position(5, 5))
 
     # Create car objects
-    car_001 = Car("001", *grid_to_screen_position(0.5, 4.5), 90)
 
     # Main game loop
     clock = pygame.time.Clock()
 
-
-
-        # Clear the screen
+    # Clear the screen
     screen.fill(WHITE)
 
-        # Draw the background image
+    # Draw the background image
     screen.blit(background_image, background_rect)
 
-        # Draw traffic lights
+    # Draw traffic lights
     for light in TrafficLight.lights:
         light.draw(screen)
 
@@ -132,11 +145,11 @@ async def main():
     for y in range(0, HEIGHT, HEIGHT // GRID_SIZE):
         pygame.draw.line(screen, (0, 0, 0), (0, y), (WIDTH, y))
 
-        # Update the display
-        pygame.display.flip()
+    # Update the display
+    pygame.display.flip()
 
-        # Cap the frame rate
-        clock.tick(FPS)
+    # Cap the frame rate
+    clock.tick(FPS)
 
     shared_space = SharedSpace()
     intersections = Intersections()
@@ -158,14 +171,23 @@ async def main():
 
     carro3 = AgentCar("carro3@localhost", "123", position_x=-1, position_y=3, direction="right", tag="003",
                       shared_space=shared_space, intersections=intersections, waiting_time_manager=waiting_time)
+
+    car_001 = Car("001", *grid_to_screen_position(5.5, -1.5), 180)
+    car_002 = Car("002", *grid_to_screen_position(5.5, -2.5), 180)
+    car_003 = Car("003", *grid_to_screen_position(-1.5, 3.5), 90)
     await semaforo1.start(auto_register=True)
     await semaforo2.start(auto_register=True)
     await semaforo3.start(auto_register=True)
     await semaforo4.start(auto_register=True)
     await intersection.start(auto_register=True)
     await carro.start(auto_register=True)
+    car_agents["001"] = carro  # Replace "001" with the actual car tag
     await carro2.start(auto_register=True)
+    car_agents["002"] = carro2  # Replace "001" with the actual car tag
     await carro3.start(auto_register=True)
+    car_agents["003"] = carro3  # Replace "001" with the actual car tag
+    interface_task = asyncio.create_task(update_interface(car_agents))
+    await interface_task
 
 
 if __name__ == "__main__":
