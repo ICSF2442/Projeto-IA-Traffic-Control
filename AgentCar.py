@@ -9,7 +9,8 @@ from spade.message import Message
 
 class AgentCar(Agent):
     class CarBehavior(CyclicBehaviour):
-        def __init__(self, position_x, position_y, direction, tag, shared_space, intersections, waiting_time_manager):
+        def __init__(self, position_x, position_y, direction, tag, shared_space, intersections, waiting_time_manager,
+                     event_handler):
             super().__init__()
             self.tag = tag
             self.posicao_x = position_x
@@ -26,13 +27,12 @@ class AgentCar(Agent):
             self.YtoStop = None
             self.traffic_color = None
             self.already_stopped_once = False
-            self.movements = []
+            self.event_handler = event_handler
 
         async def move_and_send(self, direction, x_change, y_change):
             self.posicao_x += x_change
             self.posicao_y += y_change
-
-            self.movements.append((self.tag, self.posicao_x, self.posicao_y, time.time()))  # Use time.time() for timestamp
+            self.event_handler.trigger_event(0, self.tag)
 
             if len(self.intersection) > 0:
                 intersection_conditions = {
@@ -151,6 +151,7 @@ class AgentCar(Agent):
                     print(f"carro{self.tag} moveu se:{self.posicao_x},{self.posicao_y}")
 
     def __init__(self, jid: str, password: str, position_x, position_y, direction, tag: str, shared_space,
+                 event_handler,
                  waiting_time_manager,
                  intersections,
                  verify_security: bool = False):
@@ -163,9 +164,10 @@ class AgentCar(Agent):
         self.shared_space = shared_space
         self.intersections = intersections
         self.waiting_time_manager = waiting_time_manager
+        self.event_handler = event_handler
 
     async def setup(self):
         print("Agent starting at position ({}, {})...".format(self.posicao_x, self.posicao_y))
         self.behavior = self.CarBehavior(self.posicao_x, self.posicao_y, self.direction, self.tag, self.shared_space,
-                                         self.intersections, self.waiting_time_manager)
+                                         self.intersections, self.waiting_time_manager, self.event_handler)
         self.add_behaviour(self.behavior)
