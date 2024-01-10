@@ -25,12 +25,14 @@ class AgentIntersection(Agent):
                     self.semaforoOeste.setCor("Vermelho")
                     self.semaforoEste.setCor("Vermelho")
                     self.priorityLine = "north"
+                    print(f"Priority: {self.priorityLine}")
                 elif direction == "south":
                     self.semaforoNorte.setCor("Vermelho")
                     self.semaforoSul.setCor("Verde")
                     self.semaforoOeste.setCor("Vermelho")
                     self.semaforoEste.setCor("Vermelho")
                     self.priorityLine = "south"
+                    print(f"Priority: {self.priorityLine}")
 
                 elif direction == "east":
                     self.semaforoNorte.setCor("Vermelho")
@@ -38,6 +40,7 @@ class AgentIntersection(Agent):
                     self.semaforoOeste.setCor("Vermelho")
                     self.semaforoEste.setCor("Verde")
                     self.priorityLine = "east"
+                    print(f"Priority: {self.priorityLine}")
 
                 elif direction == "west":
                     self.semaforoNorte.setCor("Vermelho")
@@ -45,6 +48,7 @@ class AgentIntersection(Agent):
                     self.semaforoOeste.setCor("Verde")
                     self.semaforoEste.setCor("Vermelho")
                     self.priorityLine = "west"
+                    print(f"Priority: {self.priorityLine}")
 
         def check_if_car(self, tag):
             tag = tag[1:]
@@ -77,7 +81,6 @@ class AgentIntersection(Agent):
 
                 # Select the direction with the highest weighted value
                 chosen_direction = max(weighted_values, key=weighted_values.get)
-
                 return chosen_direction
 
         def get_wait_time(self, direction):
@@ -115,6 +118,18 @@ class AgentIntersection(Agent):
 
             return predicted_direction
 
+        def change_busy_status(self):
+            traffic = {
+                "north": self.north,
+                "south": self.south,
+                "east": self.east,
+                "west": self.west
+            }
+            if self.priorityLine in traffic:
+                self.busy = traffic[self.priorityLine] > 0
+            else:
+                self.busy = False
+
         def __init__(self, positionX: int, positionY: int, semaforoNorte: Agent, semaforoSul: Agent,
                      semaforoEste: Agent,
                      semaforoOeste: Agent, waiting_time_manager):
@@ -150,21 +165,13 @@ class AgentIntersection(Agent):
             while True:
 
                 await self.change_traffic_lights(self.traffic_handler())
-                traffic = {
-                    "north": self.north,
-                    "south": self.south,
-                    "east": self.east,
-                    "west": self.west
-                }
-                if self.priorityLine in traffic:
-                    self.busy = traffic[self.priorityLine] > 0
-                else:
-                    self.busy = False
-                responseTotal = await self.receive(timeout=2)
+                self.change_busy_status()
+                print(f"Im busy? {self.busy}")
+                responseTotal = await self.receive(timeout=3)
                 if responseTotal:
                     if responseTotal.body.startswith("PASSED"):
-                        print("recebi passed")
                         parts = responseTotal.body.split(";")
+                        print(f"recebi passed {parts[1]}")
                         if self.check_if_car(parts) == 1:
                             carro = self.search_array_of_arrays(self.carros, parts[1])
                             self.carrosTAG.remove(parts[1])
@@ -188,10 +195,11 @@ class AgentIntersection(Agent):
                                     self.east -= 1
                                 elif semaforo == "oeste":
                                     self.west -= 1
-
+                        self.change_busy_status()
+                        await self.change_traffic_lights(self.traffic_handler())
                     if responseTotal.body.startswith("BEACON"):
-                        print("recebi o beacon")
                         parts = responseTotal.body.split(";")
+                        print(f"recebi o beacon {parts[1]}")
                         if len(parts) == 6:
                             car_tag = str(parts[1])
                             car_posX = int(parts[2])
@@ -202,28 +210,28 @@ class AgentIntersection(Agent):
                             if semaforo:
                                 if self.check_if_car(parts) == 0:
                                     self.carrosTAG.append(car_tag)
-                                msg = Message(to=f"{car_agent_jid}")
-                                msg.set_metadata("performative", "agree")
-                                msg.body = f"RECEIVED;{self.positionX};{self.positionY};{self.agent.jid}"
-                                await self.send(msg)
-                                if car_tag == 112 or car_tag == 911:
-                                    if semaforo == "norte":
-                                        self.north += 250
-                                    elif semaforo == "sul":
-                                        self.south += 250
-                                    elif semaforo == "este":
-                                        self.east += 250
-                                    elif semaforo == "oeste":
-                                        self.west += 250
-                                else:
-                                    if semaforo == "norte":
-                                        self.north += 1
-                                    elif semaforo == "sul":
-                                        self.south += 1
-                                    elif semaforo == "este":
-                                        self.east += 1
-                                    elif semaforo == "oeste":
-                                        self.west += 1
+                                    msg = Message(to=f"{car_agent_jid}")
+                                    msg.set_metadata("performative", "agree")
+                                    msg.body = f"RECEIVED;{self.positionX};{self.positionY};{self.agent.jid}"
+                                    await self.send(msg)
+                                    if car_tag == 112 or car_tag == 911:
+                                        if semaforo == "norte":
+                                            self.north += 250
+                                        elif semaforo == "sul":
+                                            self.south += 250
+                                        elif semaforo == "este":
+                                            self.east += 250
+                                        elif semaforo == "oeste":
+                                            self.west += 250
+                                    else:
+                                        if semaforo == "norte":
+                                            self.north += 1
+                                        elif semaforo == "sul":
+                                            self.south += 1
+                                        elif semaforo == "este":
+                                            self.east += 1
+                                        elif semaforo == "oeste":
+                                            self.west += 1
                 for tag in self.carrosTAG:
                     carro = self.search_array_of_arrays(self.carros, tag)
                     car_agent_jid = carro[4]
@@ -231,24 +239,24 @@ class AgentIntersection(Agent):
                     if semaforo == "norte":
                         msg1 = Message(to=f"{car_agent_jid}")
                         msg1.set_metadata("performative", "agree")
-                        msg1.body = f"SEMAFORO;{self.semaforoNorte.cor};{self.semaforoNorte.positionX};{self.semaforoNorte.positionY}"
+                        msg1.body = f"SEMAFORO;{self.semaforoNorte.cor};{self.semaforoNorte.positionX};{self.semaforoNorte.positionY + 1}"
                         await self.send(msg1)
                     elif semaforo == "sul":
                         msg2 = Message(to=f"{car_agent_jid}")
                         msg2.set_metadata("performative", "agree")
-                        msg2.body = f"SEMAFORO;{self.semaforoSul.cor};{self.semaforoSul.positionX};{self.semaforoSul.positionY}"
+                        msg2.body = f"SEMAFORO;{self.semaforoSul.cor};{self.semaforoSul.positionX};{self.semaforoSul.positionY - 1}"
                         await self.send(msg2)
                     elif semaforo == "este":
                         msg3 = Message(to=f"{car_agent_jid}")
                         msg3.set_metadata("performative", "agree")
-                        msg3.body = f"SEMAFORO;{self.semaforoEste.cor};{self.semaforoEste.positionX};{self.semaforoEste.positionY}"
+                        msg3.body = f"SEMAFORO;{self.semaforoEste.cor};{self.semaforoEste.positionX + 1};{self.semaforoEste.positionY}"
                         await self.send(msg3)
                     elif semaforo == "oeste":
                         msg4 = Message(to=f"{car_agent_jid}")
                         msg4.set_metadata("performative", "agree")
-                        msg4.body = f"SEMAFORO;{self.semaforoOeste.cor};{self.semaforoOeste.positionX};{self.semaforoOeste.positionY}"
+                        msg4.body = f"SEMAFORO;{self.semaforoOeste.cor};{self.semaforoOeste.positionX - 1};{self.semaforoOeste.positionY}"
                         await self.send(msg4)
-                    await asyncio.sleep(2)
+
                 await asyncio.sleep(1)
 
     def __init__(self, jid: str, password: str, positionX, positionY, semaforoNorte: Agent, semaforoSul: Agent,
