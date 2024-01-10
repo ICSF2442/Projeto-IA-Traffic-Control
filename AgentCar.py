@@ -1,5 +1,6 @@
 import asyncio
 import math
+import socket
 from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour
 from spade.message import Message
@@ -25,9 +26,18 @@ class AgentCar(Agent):
             self.traffic_color = None
             self.already_stopped_once = False
 
+        def update_interface(self):
+            pygame_host = "localhost"
+            pygame_port = 12345  # Replace with the Pygame listening port
+            pygame_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            pygame_socket.connect((pygame_host, pygame_port))
+            pygame_socket.send(f"MOVED;{self.tag}".encode())
+            pygame_socket.close()
+
         async def move_and_send(self, direction, x_change, y_change):
             self.posicao_x += x_change
             self.posicao_y += y_change
+            self.shared_space.move_agent(self)
             if len(self.intersection) > 0:
                 intersection_conditions = {
                     "up": (self.posicao_y - 1 >= int(self.intersection[2]) and self.posicao_x - 1 >= int(
@@ -57,7 +67,8 @@ class AgentCar(Agent):
 
                 if not self.stopped:
                     print(f"Car[{self.tag}] Coords:({self.posicao_x},{self.posicao_y})")
-                    if not (self.posicao_x == self.XtoStop and self.posicao_y == self.YtoStop and self.traffic_color == "Vermelho"):
+                    if not (
+                            self.posicao_x == self.XtoStop and self.posicao_y == self.YtoStop and self.traffic_color == "Vermelho"):
                         await self.send_beacon()
                         await self.handle_direction()
                         await self.check_traffic_light()

@@ -5,12 +5,16 @@ from spade.behaviour import CyclicBehaviour
 from spade.message import Message
 import math
 import turtle
+from interface import Car
+from interface import TrafficLight
 from SharedSpace import SharedSpace
 from AgentCar import AgentCar
 from AgentIntersection import AgentIntersection
 from AgentTrafficLight import AgentTrafficLight
 from Intersections import Intersections
 from WaitingTimeManager import WaitingTimeManager
+import pygame
+import sys
 
 
 async def main():
