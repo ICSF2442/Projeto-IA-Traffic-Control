@@ -208,13 +208,13 @@ class AgentIntersection(Agent):
                                 await self.send(msg)
                                 if car_tag == 112 or car_tag == 911:
                                     if semaforo == "norte":
-                                        self.north += 25
+                                        self.north += 250
                                     elif semaforo == "sul":
-                                        self.south += 25
+                                        self.south += 250
                                     elif semaforo == "este":
-                                        self.east += 25
+                                        self.east += 250
                                     elif semaforo == "oeste":
-                                        self.west += 25
+                                        self.west += 250
                                 else:
                                     if semaforo == "norte":
                                         self.north += 1
