@@ -31,6 +31,8 @@ background_rect = background_image.get_rect()
 
 # Carrega as imagens dos carros
 car_image = pygame.image.load("images/carro.png")
+ambulancia_image = pygame.image.load("images/ambulancia.png")
+policia_image = pygame.image.load("images/policia.png")
 
 # Carrega as imagens dos semáforos
 green_light_image = pygame.image.load("images/VERDE.png")
@@ -98,6 +100,10 @@ class Car:
     def __init__(self, tag, start_x, start_y, initial_angle, direction):
         self.tag = tag
         self.image = car_image
+        if self.tag == "112":
+            self.image = ambulancia_image
+        if self.tag == "911":
+            self.image = policia_image
         self.rect = self.image.get_rect()
         start_x = grid_to_x(start_x)
         start_y = grid_to_y(start_y)
