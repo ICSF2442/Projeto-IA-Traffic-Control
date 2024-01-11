@@ -27,6 +27,7 @@ class AgentCar(Agent):
             self.traffic_color = None
             self.already_stopped_once = False
             self.event_handler = event_handler
+            self.passei = False
 
         async def move_and_send(self, direction, x_change, y_change):
             self.posicao_x += x_change
@@ -35,14 +36,14 @@ class AgentCar(Agent):
 
             if len(self.intersection) > 0:
                 intersection_conditions = {
-                    "up": (self.posicao_y - 1 >= int(self.intersection[2]) and self.posicao_x - 1 >= int(
+                    "up": (self.posicao_y - 1 > int(self.intersection[2])+1 and self.posicao_x - 1 == int(
                         self.intersection[1])),
-                    "down": (self.posicao_y + 1 <= int(self.intersection[2]) and self.posicao_x + 1 <= int(
+                    "down": (self.posicao_y + 1 < int(self.intersection[2])+1 and self.posicao_x + 1 == int(
                         self.intersection[1])),
                     "left": (self.posicao_y - 1 == int(self.intersection[2]) and self.posicao_x + 1 <= int(
-                        self.intersection[1])),
+                        self.intersection[1])+1),
                     "right": (self.posicao_y + 1 == int(self.intersection[2]) and self.posicao_x - 1 >= int(
-                        self.intersection[1]))
+                        self.intersection[1])+1)
                 }
                 if self.beacon_stop:
                     if direction in intersection_conditions and intersection_conditions[direction]:
@@ -52,14 +53,15 @@ class AgentCar(Agent):
                         beacon_msg.body = f"PASSED;{self.tag};{self.posicao_x};{self.posicao_y};{direction};{self.agent.jid}"
                         print(f"Sent passed {self.tag}")
                         await self.send(beacon_msg)
+                        self.passei = True
                         self.waiting_time_manager.car_continued(self.direction)
                         self.intersection = []
                         self.traffic_color = None
                         self.beacon_stop = False
 
         async def run(self):
-            while True:
 
+            while True:
                 if not self.stopped:
                     print(f"Car[{self.tag}] Coords:({self.posicao_x},{self.posicao_y})")
                     if not (
@@ -117,10 +119,10 @@ class AgentCar(Agent):
                 else:
                     # Wait until the next position is available
                     self.movement_occurred = True
-                    print(f"Position ({next_x}, {next_y}) is occupied. Waiting...")
+                    print(f"{self.tag} Position ({next_x}, {next_y}) is occupied. Waiting...")
 
         async def check_traffic_light(self):
-            response = await self.receive(timeout=2)
+            response = await self.receive(timeout=3)
             if response:
                 if response.body.startswith("RECEIVED"):
                     self.beacon_stop = True

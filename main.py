@@ -80,10 +80,12 @@ class TrafficLight:
         self.green_light = not self.green_light
 
     def green(self):
-        self.green_light = self.green_light
+        if not self.green_light:
+            self.green_light = not self.green_light
 
     def red(self):
-        self.green_light = not self.green_light
+        if self.green_light:
+            self.green_light = not self.green_light
 
     def update(self):
         self.switch_light()
@@ -138,11 +140,14 @@ class Car:
 
 # Função para atualizar a ‘interface’ gráfica
 def update_interface():
-    screen.blit(background_image, background_rect)  # Desenha a imagem de fundo
+    screen.blit(background_image, background_rect)
+    # Desenha a imagem de fundo
+
     for light in TrafficLight.lights:
         light.draw(screen)  # Desenha os semáforos
     for car in Car.cars:
         car.draw(screen)  # Desenha os carros
+
     for x in range(0, WIDTH, WIDTH // GRID_SIZE):
         pygame.draw.line(screen, (0, 0, 0), (x, 0), (x, HEIGHT))  # Desenha as linhas da grade
     for y in range(0, HEIGHT, HEIGHT // GRID_SIZE):
@@ -152,28 +157,29 @@ def update_interface():
 
 # Função de callback para atualizar o semáforo na ‘interface’
 def main_semaforo_update(info):
-    for i in range(3):
-        if info[i] == 0:
+    for i in range(4):
+        if i == 0:
             if info[i] == "Verde":
                 lista_semaforos_interface["norte"].green()
             else:
                 lista_semaforos_interface["norte"].red()
-        elif info[i] == 1:
+        elif i == 1:
             if info[i] == "Verde":
                 lista_semaforos_interface["sul"].green()
             else:
                 lista_semaforos_interface["sul"].red()
-        elif info[i] == 2:
+        elif i == 2:
             if info[i] == "Verde":
                 lista_semaforos_interface["oeste"].green()
             else:
                 lista_semaforos_interface["oeste"].red()
-        elif info[i] == 3:
+        elif i == 3:
             if info[i] == "Verde":
                 lista_semaforos_interface["este"].green()
             else:
                 lista_semaforos_interface["este"].red()
-        update_interface()
+
+    update_interface()
 
 
 # Função de callback para atualizar a posição do carro na ‘interface’
@@ -198,11 +204,12 @@ async def main():
     car_001 = Car("001", 4.5, 8.5, 180, "up")
     car_002 = Car("002", 4.5, 9.5, 180, "up")
     car_003 = Car("003", -1.5, 4.5, 90, "right")
-
+    car_004 = Car("112", 9.5, 3.5, 270, "left")
     # Adiciona os carros e semáforos aos dicionários da interface
     lista_carros_interface[car_001.tag] = car_001
     lista_carros_interface[car_002.tag] = car_002
     lista_carros_interface[car_003.tag] = car_003
+    lista_carros_interface[car_004.tag] = car_004
     lista_semaforos_interface["oeste"] = west_traffic_light
     lista_semaforos_interface["norte"] = north_traffic_light
     lista_semaforos_interface["este"] = east_traffic_light
@@ -210,6 +217,7 @@ async def main():
 
     # Configuração inicial da ‘interface’
     clock = pygame.time.Clock()
+
     update_interface()
 
     # Define o limite de quadros por segundo
@@ -242,10 +250,11 @@ async def main():
     carro3 = AgentCar("carro3@localhost", "123", position_x=-1, position_y=3, direction="right", tag="003",
                       shared_space=shared_space, intersections=intersections, waiting_time_manager=waiting_time,
                       event_handler=event_handler)
-    await semaforo1.start(auto_register=True)
-    await semaforo2.start(auto_register=True)
-    await semaforo3.start(auto_register=True)
-    await semaforo4.start(auto_register=True)
+
+    carro4 = AgentCar("carro4@localhost", "123", position_x=9, position_y=5, direction="left", tag="112",
+                      shared_space=shared_space, intersections=intersections, waiting_time_manager=waiting_time,
+                      event_handler=event_handler)
+
     await intersection.start(auto_register=True)
     await carro.start(auto_register=True)
     car_agents["001"] = carro
@@ -253,6 +262,10 @@ async def main():
     car_agents["002"] = carro2
     await carro3.start(auto_register=True)
     car_agents["003"] = carro3
+    await carro4.start(auto_register=True)
+    car_agents["112"] = carro4
+
+
 
 
 # Executa a função principal assíncrona
