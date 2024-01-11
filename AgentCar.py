@@ -1,6 +1,5 @@
 import asyncio
 import math
-import time
 
 from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour
@@ -19,8 +18,8 @@ class AgentCar(Agent):
             self.direction = direction
             self.beacon_stop = False
             self.intersection = []
-            self.movement_occurred = False  # Flag to track movement
-            self.shared_space = shared_space  # Reference to shared space
+            self.movement_occurred = False
+            self.shared_space = shared_space
             self.intersections = intersections
             self.waiting_time_manager = waiting_time_manager
             self.XtoStop = None
@@ -68,7 +67,7 @@ class AgentCar(Agent):
                         await self.send_beacon()
                         await self.handle_direction()
                         await self.check_traffic_light()
-                        self.movement_occurred = False  # Reset the flag for the next iteration
+                        self.movement_occurred = False 
                     else:
                         self.stopped = True
                 else:

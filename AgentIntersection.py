@@ -10,15 +10,17 @@ import turtle
 class AgentIntersection(Agent):
     class MyBehav(CyclicBehaviour):
 
-        def search_array_of_arrays(self, arrays, item):
+        def search_array_of_arrays(self, arrays,
+                                   item):  # Procura um item dentro de um array que está dentro de um array.
             for sub_array in arrays:
                 if item in sub_array:
-                    return sub_array  # Return the sub-array if the item is found
-            return None  # Return None if the item is not found in any sub-array
+                    return sub_array  # Retorna o sub-array se o objeto for encontrado
+            return None  # Retorna None se o item nao for encontrado
 
-        async def change_traffic_lights(self, direction):
+        async def change_traffic_lights(self, direction):  # Mudança das luzes dos semaforos baseada na direção recebida
+
             if not self.busy:
-                # Change the traffic lights based on the chosen direction
+
                 if direction == "north":
 
                     self.semaforoNorte.setCor("Verde")
@@ -27,7 +29,8 @@ class AgentIntersection(Agent):
                     self.semaforoEste.setCor("Vermelho")
                     self.priorityLine = "north"
                     estado_semaforos = ["Verde", "Vermelho", "Vermelho", "Vermelho"]
-                    self.event_handler.trigger_event(1, estado_semaforos)
+                    self.event_handler.trigger_event(1, estado_semaforos)  # ----> Envia para a Interface o update do
+                    # estado dos semaforos
                     print(f"Priority: {self.priorityLine}")
                 elif direction == "south":
 
@@ -60,17 +63,18 @@ class AgentIntersection(Agent):
                     self.event_handler.trigger_event(1, estado_semaforos)
                     print(f"Priority: {self.priorityLine}")
 
-        def check_if_car(self, tag):
+        def check_if_car(self, tag):  # Verifica se o carro existe no array de carros que a interseção recebu
             tag = tag[1:]
-            if self.search_array_of_arrays(self.carros, tag[0]) is None:
+            if self.search_array_of_arrays(self.carros, tag[0]) is None:  # Se nao existir, adiciona e retorna 0.
                 if tag not in self.carros:
                     self.carros += [tag]  # Using the += operator to extend the array
                     return 0
             else:
                 return 1
 
+        # Método para lidar com o tráfego e decidir a direção com base no peso
         def traffic_handler(self):
-            max_wait_time = 10  # Define the maximum wait time for fairness (in seconds), adjust as needed
+            max_wait_time = 40  # Define o tempo máximo de espera para equidade (em segundos), ajuste conforme necessário
             traffic = {
                 "north": self.north,
                 "south": self.south,
@@ -78,24 +82,23 @@ class AgentIntersection(Agent):
                 "west": self.west
             }
             if any(value > 0 for value in traffic.values()):
-                # Calculate the total number of cars waiting
+                # Calcular o número total de carros esperando
                 total_waiting = sum(traffic.values())
 
-                # Calculate the average wait time per direction (avoid division by zero)
+                # Calcular o tempo médio de espera por direção (evitar divisão por zero)
                 average_wait_time = {
                     side: max_wait_time if traffic[side] == 0 else self.get_wait_time(side) / traffic[side]
                     for side in traffic}
 
-                # Calculate a weighted value for each direction considering both traffic and wait time
+                # Calcular um valor ponderado para cada direção considerando tanto o tráfego quanto o tempo de espera
                 weighted_values = {side: traffic[side] * average_wait_time[side] for side in traffic}
 
-                # Select the direction with the highest weighted value
+                # Selecionar a direção com o valor ponderado mais alto
                 chosen_direction = max(weighted_values, key=weighted_values.get)
                 return chosen_direction
 
-        def get_wait_time(self, direction):
+        def get_wait_time(self, direction):  # Função para obter o tempo de espera dependendo da direção inserida
 
-            # Define a function to get the wait time for a specific direction
             if direction == "north":
                 self.north_wait_time += self.waiting_time_manger.get_time_for_direction(direction)
                 return self.north_wait_time
@@ -111,7 +114,8 @@ class AgentIntersection(Agent):
             else:
                 return 0  # Return 0 for an unknown direction
 
-        def predict_car_pos(self, carX, carY, direction):
+        def predict_car_pos(self, carX, carY,
+                            direction):  # Função para prever a posição dos carros e que semaforo vao encontrar
             predicted_direction = None
 
             if direction == "up" and self.semaforoSul.positionX == carX:
@@ -128,7 +132,7 @@ class AgentIntersection(Agent):
 
             return predicted_direction
 
-        def change_busy_status(self):
+        def change_busy_status(self):  # Função para determinar se a interseção está ocupada
             traffic = {
                 "north": self.north,
                 "south": self.south,
@@ -140,6 +144,7 @@ class AgentIntersection(Agent):
             else:
                 self.busy = False
 
+        # Construtor
         def __init__(self, positionX: int, positionY: int, semaforoNorte: Agent, semaforoSul: Agent,
                      semaforoEste: Agent,
                      semaforoOeste: Agent, waiting_time_manager, event_handler):
@@ -172,15 +177,17 @@ class AgentIntersection(Agent):
             self.waiting_time_manger = waiting_time_manager
             self.event_handler = event_handler
 
-        async def run(self):
+        async def run(self):  # Inicializador
             while True:
 
-                await self.change_traffic_lights(self.traffic_handler())
-                self.change_busy_status()
+                await self.change_traffic_lights(self.traffic_handler())  # Atualização do estado dos semaforos
+                self.change_busy_status()  # Atualização do estado da interseção se está ocupada ou não
                 print(f"Im busy? {self.busy}")
-                responseTotal = await self.receive(timeout=3)
+                responseTotal = await self.receive(timeout=3)  # Espera da receção das mensagens
                 if responseTotal:
-                    if responseTotal.body.startswith("PASSED"):
+                    if responseTotal.body.startswith(
+                            "PASSED"):  # Se receber "PASSED" signfica que um carro passou da interseção
+                        # E irá fazer o necessário para remover o carro dos dados da interseção
                         parts = responseTotal.body.split(";")
                         print(f"recebi passed {parts[1]}")
                         if self.check_if_car(parts) == 1:
@@ -208,7 +215,9 @@ class AgentIntersection(Agent):
                                     self.west -= 1
                         self.change_busy_status()
                         await self.change_traffic_lights(self.traffic_handler())
-                    if responseTotal.body.startswith("BEACON"):
+                    if responseTotal.body.startswith(
+                            "BEACON"):  # Se receber "BEACON" signfica que um carro irá chegar à interseção
+                        # E irá fazer o necessário para adicionar o carro aos dados da interseção
                         parts = responseTotal.body.split(";")
                         print(f"recebi o beacon {parts[1]}")
                         if len(parts) == 6:
@@ -224,7 +233,16 @@ class AgentIntersection(Agent):
                                     msg = Message(to=f"{car_agent_jid}")
                                     msg.set_metadata("performative", "agree")
                                     msg.body = f"RECEIVED;{self.positionX};{self.positionY};{self.agent.jid}"
+
+                                    # Envia a mensagem "RECIEVED" para um carro que
+                                    # enviou o "BEACON" para que este saiba que a interseção
+                                    # saiba da sua existencia e que este pare de enviar "BEACONs
+
                                     await self.send(msg)
+
+                                    # Adicionar a presença dos carros a cada direção dependendo da qual ele vem
+                                    # Carros de prioridade têm muito maior presença para que estes ganhem a prioridade
+
                                     if car_tag == 112 or car_tag == 911:
                                         if semaforo == "norte":
                                             self.north += 250
@@ -243,6 +261,9 @@ class AgentIntersection(Agent):
                                             self.east += 1
                                         elif semaforo == "oeste":
                                             self.west += 1
+
+                # For ‘loop’ para enviar a todos os carros presentes nos dados da intserseção o estado dos semaforos
+                # dependendo da sua direção
                 for tag in self.carrosTAG:
                     carro = self.search_array_of_arrays(self.carros, tag)
                     car_agent_jid = carro[4]
@@ -270,6 +291,7 @@ class AgentIntersection(Agent):
 
                 await asyncio.sleep(1)
 
+    # Construtor
     def __init__(self, jid: str, password: str, positionX, positionY, semaforoNorte: Agent, semaforoSul: Agent,
                  semaforoEste: Agent, semaforoOeste: Agent, intersections, waiting_time_manager, event_handler,
                  verify_security: bool = False):
@@ -305,5 +327,6 @@ class AgentIntersection(Agent):
     async def setup(self):
         print("Interseção na posição ({}, {})".format(self.positionX, self.positionY))
         self.my_behav = self.MyBehav(self.positionX, self.positionY, self.semaforoNorte, self.semaforoSul,
-                                     self.semaforoOeste, self.semaforoEste, self.waiting_time_manager, self.event_handler)
+                                     self.semaforoOeste, self.semaforoEste, self.waiting_time_manager,
+                                     self.event_handler)
         self.add_behaviour(self.my_behav)

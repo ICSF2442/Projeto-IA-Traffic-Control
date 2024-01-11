@@ -1,8 +1,8 @@
-
+# Classe que armaneza as posições dos carros para que estes não colidem
 
 class SharedSpace:
     def __init__(self):
-        self.space = {}  # Dictionary to represent the shared space
+        self.space = {}  # Dicionario para representar o espaço
 
     def is_position_occupied(self, x, y):
         return (x, y) in self.space

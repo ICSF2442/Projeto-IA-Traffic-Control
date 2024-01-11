@@ -1,3 +1,4 @@
+# Classe que armaneza todas as interseções
 class Intersections:
     def __init__(self):
         self.intersection_array = []

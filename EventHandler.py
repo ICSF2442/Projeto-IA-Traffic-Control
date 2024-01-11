@@ -1,3 +1,5 @@
+# Classe que lida com os eventos que acontecem no codigo para atualizar a ‘interface’.
+
 class EventHandler:
     def __init__(self):
         self.listeners = {}

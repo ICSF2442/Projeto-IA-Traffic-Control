@@ -1,6 +1,8 @@
 import time
 
 
+# Classe que irá guardar e calcular tempos de espera dos carros quando estes esperam pelo semaforo
+
 class WaitingTimeManager:
     def __init__(self):
         self.stopped_times = {

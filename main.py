@@ -1,7 +1,5 @@
-import time
-
+# Importa as bibliotecas necessárias
 import spade
-import asyncio
 from SharedSpace import SharedSpace
 from AgentCar import AgentCar
 from AgentIntersection import AgentIntersection
@@ -11,42 +9,49 @@ from WaitingTimeManager import WaitingTimeManager
 from EventHandler import EventHandler
 import pygame
 
+# Inicializa o pygame
 pygame.init()
 
-# Constants
+# Constantes
 WIDTH, HEIGHT = 1000, 1000
 FPS = 60
 WHITE = (255, 255, 255)
 GRID_SIZE = 8
-# Create the window
+
+# Cria a janela do pygame
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Projeto AI - Controlo de Tráfego")
 programIcon = pygame.image.load('images/icon.png')
 pygame.display.set_icon(programIcon)
 car_agents = {}
 
-background_image = pygame.image.load("images/intersecao2.png")  # Replace with your image file
+# Carrega a imagem de fundo
+background_image = pygame.image.load("images/intersecao2.png")
 background_rect = background_image.get_rect()
 
-# Load car images
-car_image = pygame.image.load("images/carro.png")  # Replace with the path to your car image
+# Carrega as imagens dos carros
+car_image = pygame.image.load("images/carro.png")
 
-# Load traffic light images
-green_light_image = pygame.image.load("images/VERDE.png")  # Replace with the path to your green light image
-red_light_image = pygame.image.load("images/VERMELHO.png")  # Replace with the path to your red light image
+# Carrega as imagens dos semáforos
+green_light_image = pygame.image.load("images/VERDE.png")
+red_light_image = pygame.image.load("images/VERMELHO.png")
 
+# Define o tamanho das imagens dos semáforos
 light_size = (int(green_light_image.get_width() * 0.1), int(green_light_image.get_height() * 0.1))
 green_light_image = pygame.transform.scale(green_light_image, light_size)
 red_light_image = pygame.transform.scale(red_light_image, light_size)
 
+# Dicionários para armazenar carros e semáforos na interface
 lista_carros_interface = {}
 lista_semaforos_interface = {}
 
 
+# Função para converter coordenadas de grade para posição na tela
 def grid_to_screen_position(x, y):
     return x * (WIDTH // GRID_SIZE), y * (HEIGHT // GRID_SIZE)
 
 
+# Funções para converter coordenadas de grade para posição na tela e vice-versa
 def grid_to_x(x):
     return x * (WIDTH // GRID_SIZE)
 
@@ -59,13 +64,14 @@ def screen_position_to_grid(x, y):
     return x // (WIDTH // GRID_SIZE), y // (HEIGHT // GRID_SIZE)
 
 
+# Classe que representa um semáforo
 class TrafficLight:
     lights = []
 
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.green_light = False  # Initial state
+        self.green_light = False  # Estado inicial
         TrafficLight.lights.append(self)
 
     def switch_light(self):
@@ -85,6 +91,7 @@ class TrafficLight:
         screen.blit(light_image, (self.x - light_size[0] // 2, self.y - light_size[1] // 2))
 
 
+# Classe que representa um carro
 class Car:
     cars = []
 
@@ -123,19 +130,21 @@ class Car:
             self.update_position(x_change, y_change)
 
 
+# Função para atualizar a interface gráfica
 def update_interface():
-    screen.blit(background_image, background_rect)  # Draw the background image
+    screen.blit(background_image, background_rect)  # Desenha a imagem de fundo
     for light in TrafficLight.lights:
-        light.draw(screen)  # Draw traffic lights
+        light.draw(screen)  # Desenha os semáforos
     for car in Car.cars:
-        car.draw(screen)  # Draw cars
+        car.draw(screen)  # Desenha os carros
     for x in range(0, WIDTH, WIDTH // GRID_SIZE):
-        pygame.draw.line(screen, (0, 0, 0), (x, 0), (x, HEIGHT))  # Draw grid lines
+        pygame.draw.line(screen, (0, 0, 0), (x, 0), (x, HEIGHT))  # Desenha as linhas da grade
     for y in range(0, HEIGHT, HEIGHT // GRID_SIZE):
         pygame.draw.line(screen, (0, 0, 0), (0, y), (WIDTH, y))
-    pygame.display.flip()  # Update the display
+    pygame.display.flip()  # Atualiza a tela
 
 
+# Função de callback para atualizar o semáforo na interface
 def main_semaforo_update(info):
     for i in range(3):
         if info[i] == 0:
@@ -161,41 +170,30 @@ def main_semaforo_update(info):
         update_interface()
 
 
+# Função de callback para atualizar a posição do carro na interface
 def main_callback(info):
     if info in lista_carros_interface:
         lista_carros_interface[info].move_from_message()
         update_interface()
 
 
-# "001" -> objeto carro
-
+# Função principal assíncrona
 async def main():
     global green_light_image, red_light_image
     event_handler = EventHandler()
 
-    # Initialize Pygame
-
-    # Load background image
-
-    # Resize traffic light images (20% bigger)
-
-    # Number of squares in the grid
-
-    def grid_to_screen_position(x, y):
-        return x * (WIDTH // GRID_SIZE), y * (HEIGHT // GRID_SIZE)
-
-    def screen_position_to_grid(x, y):
-        return x // (WIDTH // GRID_SIZE), y // (HEIGHT // GRID_SIZE)
-
-    # Create traffic light objects
+    # Cria objetos de semáforo
     west_traffic_light = TrafficLight(*grid_to_screen_position(3, 5))
     north_traffic_light = TrafficLight(*grid_to_screen_position(3, 3))
     east_traffic_light = TrafficLight(*grid_to_screen_position(5, 3))
     south_traffic_light = TrafficLight(*grid_to_screen_position(5, 5))
+
+    # Cria objetos de carro
     car_001 = Car("001", 4.5, 8.5, 180, "up")
     car_002 = Car("002", 4.5, 9.5, 180, "up")
     car_003 = Car("003", -1.5, 4.5, 90, "right")
 
+    # Adiciona os carros e semáforos aos dicionários da interface
     lista_carros_interface[car_001.tag] = car_001
     lista_carros_interface[car_002.tag] = car_002
     lista_carros_interface[car_003.tag] = car_003
@@ -203,11 +201,12 @@ async def main():
     lista_semaforos_interface["norte"] = north_traffic_light
     lista_semaforos_interface["este"] = east_traffic_light
     lista_semaforos_interface["sul"] = south_traffic_light
-    # Main game loop
+
+    # Configuração inicial da interface
     clock = pygame.time.Clock()
     update_interface()
 
-    # Cap the frame rate
+    # Define o limite de frames por segundo
     event_handler = EventHandler()
     clock.tick(FPS)
     shared_space = SharedSpace()
@@ -215,6 +214,8 @@ async def main():
     waiting_time = WaitingTimeManager()
     event_handler.add_listener(0, main_callback)
     event_handler.add_listener(1, main_semaforo_update)
+
+    # Inicializa os agentes
     semaforo1 = AgentTrafficLight("semaforo1@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     semaforo2 = AgentTrafficLight("semaforo2@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     semaforo3 = AgentTrafficLight("semaforo3@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
@@ -248,5 +249,6 @@ async def main():
     car_agents["003"] = carro3
 
 
+# Executa a função principal assíncrona
 if __name__ == "__main__":
     spade.run(main())
