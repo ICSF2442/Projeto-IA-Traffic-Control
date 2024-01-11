@@ -20,18 +20,27 @@ class AgentIntersection(Agent):
             if not self.busy:
                 # Change the traffic lights based on the chosen direction
                 if direction == "north":
+
                     self.semaforoNorte.setCor("Verde")
                     self.semaforoSul.setCor("Vermelho")
                     self.semaforoOeste.setCor("Vermelho")
                     self.semaforoEste.setCor("Vermelho")
+                    estado_semaforos = []
+                    estado_semaforos[0] = "Verde"
+                    estado_semaforos[1] = "Vermelho"
+                    estado_semaforos[2] = "Vermelho"
+                    estado_semaforos[3] = "Vermelho"
                     self.priorityLine = "north"
                     print(f"Priority: {self.priorityLine}")
                 elif direction == "south":
+
                     self.semaforoNorte.setCor("Vermelho")
                     self.semaforoSul.setCor("Verde")
                     self.semaforoOeste.setCor("Vermelho")
                     self.semaforoEste.setCor("Vermelho")
+                    estado_semaforos = ["Vermelho", "Verde", "Vermelho", "Vermelho"]
                     self.priorityLine = "south"
+                    self.event_handler.trigger_event(0, estado_semaforos)
                     print(f"Priority: {self.priorityLine}")
 
                 elif direction == "east":
@@ -40,6 +49,11 @@ class AgentIntersection(Agent):
                     self.semaforoOeste.setCor("Vermelho")
                     self.semaforoEste.setCor("Verde")
                     self.priorityLine = "east"
+                    estado_semaforos = []
+                    estado_semaforos[0] = "Vermelho"
+                    estado_semaforos[1] = "Vermelho"
+                    estado_semaforos[2] = "Vermelho"
+                    estado_semaforos[3] = "Verde"
                     print(f"Priority: {self.priorityLine}")
 
                 elif direction == "west":
@@ -48,6 +62,11 @@ class AgentIntersection(Agent):
                     self.semaforoOeste.setCor("Verde")
                     self.semaforoEste.setCor("Vermelho")
                     self.priorityLine = "west"
+                    estado_semaforos = []
+                    estado_semaforos[0] = "Verde"
+                    estado_semaforos[1] = "Vermelho"
+                    estado_semaforos[2] = "Verde"
+                    estado_semaforos[3] = "Vermelho"
                     print(f"Priority: {self.priorityLine}")
 
         def check_if_car(self, tag):
