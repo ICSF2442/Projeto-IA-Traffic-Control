@@ -67,7 +67,7 @@ class AgentCar(Agent):
                         await self.send_beacon()
                         await self.handle_direction()
                         await self.check_traffic_light()
-                        self.movement_occurred = False 
+                        self.movement_occurred = False
                     else:
                         self.stopped = True
                 else:

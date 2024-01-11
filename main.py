@@ -130,7 +130,7 @@ class Car:
             self.update_position(x_change, y_change)
 
 
-# Função para atualizar a interface gráfica
+# Função para atualizar a ‘interface’ gráfica
 def update_interface():
     screen.blit(background_image, background_rect)  # Desenha a imagem de fundo
     for light in TrafficLight.lights:
@@ -144,7 +144,7 @@ def update_interface():
     pygame.display.flip()  # Atualiza a tela
 
 
-# Função de callback para atualizar o semáforo na interface
+# Função de callback para atualizar o semáforo na ‘interface’
 def main_semaforo_update(info):
     for i in range(3):
         if info[i] == 0:
@@ -170,7 +170,7 @@ def main_semaforo_update(info):
         update_interface()
 
 
-# Função de callback para atualizar a posição do carro na interface
+# Função de callback para atualizar a posição do carro na ‘interface’
 def main_callback(info):
     if info in lista_carros_interface:
         lista_carros_interface[info].move_from_message()
@@ -202,11 +202,11 @@ async def main():
     lista_semaforos_interface["este"] = east_traffic_light
     lista_semaforos_interface["sul"] = south_traffic_light
 
-    # Configuração inicial da interface
+    # Configuração inicial da ‘interface’
     clock = pygame.time.Clock()
     update_interface()
 
-    # Define o limite de frames por segundo
+    # Define o limite de quadros por segundo
     event_handler = EventHandler()
     clock.tick(FPS)
     shared_space = SharedSpace()
