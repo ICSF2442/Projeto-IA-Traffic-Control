@@ -25,12 +25,9 @@ class AgentIntersection(Agent):
                     self.semaforoSul.setCor("Vermelho")
                     self.semaforoOeste.setCor("Vermelho")
                     self.semaforoEste.setCor("Vermelho")
-                    estado_semaforos = []
-                    estado_semaforos[0] = "Verde"
-                    estado_semaforos[1] = "Vermelho"
-                    estado_semaforos[2] = "Vermelho"
-                    estado_semaforos[3] = "Vermelho"
                     self.priorityLine = "north"
+                    estado_semaforos = ["Verde", "Vermelho", "Vermelho", "Vermelho"]
+                    self.event_handler.trigger_event(1, estado_semaforos)
                     print(f"Priority: {self.priorityLine}")
                 elif direction == "south":
 
@@ -40,7 +37,7 @@ class AgentIntersection(Agent):
                     self.semaforoEste.setCor("Vermelho")
                     estado_semaforos = ["Vermelho", "Verde", "Vermelho", "Vermelho"]
                     self.priorityLine = "south"
-                    self.event_handler.trigger_event(0, estado_semaforos)
+                    self.event_handler.trigger_event(1, estado_semaforos)
                     print(f"Priority: {self.priorityLine}")
 
                 elif direction == "east":
@@ -49,11 +46,8 @@ class AgentIntersection(Agent):
                     self.semaforoOeste.setCor("Vermelho")
                     self.semaforoEste.setCor("Verde")
                     self.priorityLine = "east"
-                    estado_semaforos = []
-                    estado_semaforos[0] = "Vermelho"
-                    estado_semaforos[1] = "Vermelho"
-                    estado_semaforos[2] = "Vermelho"
-                    estado_semaforos[3] = "Verde"
+                    estado_semaforos = ["Vermelho", "Vermelho", "Vermelho", "Verde"]
+                    self.event_handler.trigger_event(1, estado_semaforos)
                     print(f"Priority: {self.priorityLine}")
 
                 elif direction == "west":
@@ -62,16 +56,13 @@ class AgentIntersection(Agent):
                     self.semaforoOeste.setCor("Verde")
                     self.semaforoEste.setCor("Vermelho")
                     self.priorityLine = "west"
-                    estado_semaforos = []
-                    estado_semaforos[0] = "Verde"
-                    estado_semaforos[1] = "Vermelho"
-                    estado_semaforos[2] = "Verde"
-                    estado_semaforos[3] = "Vermelho"
+                    estado_semaforos = ["Vermelho", "Vermelho", "Verde", "Vermelho"]
+                    self.event_handler.trigger_event(1, estado_semaforos)
                     print(f"Priority: {self.priorityLine}")
 
         def check_if_car(self, tag):
             tag = tag[1:]
-            if self.search_array_of_arrays(self.carros, tag[0]) == None:
+            if self.search_array_of_arrays(self.carros, tag[0]) is None:
                 if tag not in self.carros:
                     self.carros += [tag]  # Using the += operator to extend the array
                     return 0
@@ -151,7 +142,7 @@ class AgentIntersection(Agent):
 
         def __init__(self, positionX: int, positionY: int, semaforoNorte: Agent, semaforoSul: Agent,
                      semaforoEste: Agent,
-                     semaforoOeste: Agent, waiting_time_manager):
+                     semaforoOeste: Agent, waiting_time_manager, event_handler):
             super().__init__()
             self.south = 0
             self.north = 0
@@ -179,6 +170,7 @@ class AgentIntersection(Agent):
             self.busy = False
             self.priorityLine = None
             self.waiting_time_manger = waiting_time_manager
+            self.event_handler = event_handler
 
         async def run(self):
             while True:
@@ -279,7 +271,7 @@ class AgentIntersection(Agent):
                 await asyncio.sleep(1)
 
     def __init__(self, jid: str, password: str, positionX, positionY, semaforoNorte: Agent, semaforoSul: Agent,
-                 semaforoEste: Agent, semaforoOeste: Agent, intersections, waiting_time_manager,
+                 semaforoEste: Agent, semaforoOeste: Agent, intersections, waiting_time_manager, event_handler,
                  verify_security: bool = False):
         super().__init__(jid, password, verify_security)
         self.semaforoNorte = semaforoNorte
@@ -308,9 +300,10 @@ class AgentIntersection(Agent):
         semaforoOeste.setPosicao(self.positionX - 1, self.positionY - 1)
         semaforoEste.setPosicao(self.positionX + 1, self.positionY + 1)
         intersections.add_intersection(self)
+        self.event_handler = event_handler
 
     async def setup(self):
         print("Interseção na posição ({}, {})".format(self.positionX, self.positionY))
         self.my_behav = self.MyBehav(self.positionX, self.positionY, self.semaforoNorte, self.semaforoSul,
-                                     self.semaforoOeste, self.semaforoEste, self.waiting_time_manager)
+                                     self.semaforoOeste, self.semaforoEste, self.waiting_time_manager, self.event_handler)
         self.add_behaviour(self.my_behav)

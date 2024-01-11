@@ -76,6 +76,7 @@ class TrafficLight:
 
     def red(self):
         self.green_light = not self.green_light
+
     def update(self):
         self.switch_light()
 
@@ -122,21 +123,48 @@ class Car:
             self.update_position(x_change, y_change)
 
 
+def update_interface():
+    screen.blit(background_image, background_rect)  # Draw the background image
+    for light in TrafficLight.lights:
+        light.draw(screen)  # Draw traffic lights
+    for car in Car.cars:
+        car.draw(screen)  # Draw cars
+    for x in range(0, WIDTH, WIDTH // GRID_SIZE):
+        pygame.draw.line(screen, (0, 0, 0), (x, 0), (x, HEIGHT))  # Draw grid lines
+    for y in range(0, HEIGHT, HEIGHT // GRID_SIZE):
+        pygame.draw.line(screen, (0, 0, 0), (0, y), (WIDTH, y))
+    pygame.display.flip()  # Update the display
+
+
+def main_semaforo_update(info):
+    for i in range(3):
+        if info[i] == 0:
+            if info[i] == "Verde":
+                lista_semaforos_interface["norte"].green()
+            else:
+                lista_semaforos_interface["norte"].red()
+        elif info[i] == 1:
+            if info[i] == "Verde":
+                lista_semaforos_interface["sul"].green()
+            else:
+                lista_semaforos_interface["sul"].red()
+        elif info[i] == 2:
+            if info[i] == "Verde":
+                lista_semaforos_interface["oeste"].green()
+            else:
+                lista_semaforos_interface["oeste"].red()
+        elif info[i] == 3:
+            if info[i] == "Verde":
+                lista_semaforos_interface["este"].green()
+            else:
+                lista_semaforos_interface["este"].red()
+        update_interface()
+
+
 def main_callback(info):
     if info in lista_carros_interface:
         lista_carros_interface[info].move_from_message()
-        screen.fill(WHITE)  # Clear the screen
-        screen.blit(background_image, background_rect)  # Draw the background image
-        for light in TrafficLight.lights:
-            light.draw(screen)  # Draw traffic lights
-        for car in Car.cars:
-            car.draw(screen)  # Draw cars
-        for x in range(0, WIDTH, WIDTH // GRID_SIZE):
-            pygame.draw.line(screen, (0, 0, 0), (x, 0), (x, HEIGHT))  # Draw grid lines
-        for y in range(0, HEIGHT, HEIGHT // GRID_SIZE):
-            pygame.draw.line(screen, (0, 0, 0), (0, y), (WIDTH, y))
-        pygame.display.flip()  # Update the display
-
+        update_interface()
 
 
 # "001" -> objeto carro
@@ -177,29 +205,7 @@ async def main():
     lista_semaforos_interface["sul"] = south_traffic_light
     # Main game loop
     clock = pygame.time.Clock()
-
-    # Clear the screen
-    screen.fill(WHITE)
-
-    # Draw the background image
-    screen.blit(background_image, background_rect)
-
-    # Draw traffic lights
-    for light in TrafficLight.lights:
-        light.draw(screen)
-
-        # Draw cars
-    for car in Car.cars:
-        car.draw(screen)
-
-        # Draw grid lines
-    for x in range(0, WIDTH, WIDTH // GRID_SIZE):
-        pygame.draw.line(screen, (0, 0, 0), (x, 0), (x, HEIGHT))
-    for y in range(0, HEIGHT, HEIGHT // GRID_SIZE):
-        pygame.draw.line(screen, (0, 0, 0), (0, y), (WIDTH, y))
-
-    # Update the display
-    pygame.display.flip()
+    update_interface()
 
     # Cap the frame rate
     event_handler = EventHandler()
@@ -208,13 +214,15 @@ async def main():
     intersections = Intersections()
     waiting_time = WaitingTimeManager()
     event_handler.add_listener(0, main_callback)
+    event_handler.add_listener(1, main_semaforo_update)
     semaforo1 = AgentTrafficLight("semaforo1@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     semaforo2 = AgentTrafficLight("semaforo2@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     semaforo3 = AgentTrafficLight("semaforo3@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     semaforo4 = AgentTrafficLight("semaforo4@localhost", "123", positionX=2, positionY=6, cor="Vermelho")
     intersection = AgentIntersection("intersection@localhost", "123", positionX=4, positionY=4, semaforoNorte=semaforo1,
                                      semaforoSul=semaforo2, semaforoEste=semaforo3, semaforoOeste=semaforo4,
-                                     intersections=intersections, waiting_time_manager=waiting_time)
+                                     intersections=intersections, waiting_time_manager=waiting_time,
+                                     event_handler=event_handler)
 
     carro = AgentCar("carro@localhost", "123", position_x=5, position_y=-1, direction="up", tag="001",
                      shared_space=shared_space, intersections=intersections, waiting_time_manager=waiting_time,
@@ -233,11 +241,11 @@ async def main():
     await semaforo4.start(auto_register=True)
     await intersection.start(auto_register=True)
     await carro.start(auto_register=True)
-    car_agents["001"] = carro  # Replace "001" with the actual car tag
+    car_agents["001"] = carro
     await carro2.start(auto_register=True)
-    car_agents["002"] = carro2  # Replace "001" with the actual car tag
+    car_agents["002"] = carro2
     await carro3.start(auto_register=True)
-    car_agents["003"] = carro3  # Replace "001" with the actual car tag
+    car_agents["003"] = carro3
 
 
 if __name__ == "__main__":
